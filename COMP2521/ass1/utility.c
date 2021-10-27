@@ -205,7 +205,7 @@ Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType 
 void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_name_tail){
 	Tree tree_parent = path_addr;
 	NewTree->parent = path_addr;
-	if(strcmp(path_name_tail,"/.")==0){
+	if(strcmp(path_name_tail,".")==0){
 		printf("%s '%s': File exists\n",err_msg,path);
 		FsFreeTree(NewTree);
 		return;
@@ -221,18 +221,39 @@ void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_nam
 	
 }
 
-/*char *GetParentPath(Queue Q_PATH,char *path){
-	char *parent_path = malloc((PATH_MAX+1)*sizeof(char));
 
-	STR_Node cur = Q_PATH->head;
-	strcpy(parent_path,cur->item);
-	cur = cur->next;
-	while(cur != NULL){
-		strcat(parent_path,cur->item);
-		cur = cur->next;
+void PrintLs(Tree tail_tree,char *err_msg,char *path){
+	Tree head = tail_tree;
+	if(tail_tree == NULL){
+		printf("%s '%s': No such file or directory\n",err_msg,path);
 	}
-	return parent_path;
-}*/
+	else if(tail_tree->tree_type == REGULAR_FILE){
+		printf("%s '%s': Not a directory\n",err_msg,path);
+	}
+	while (head != NULL){
+		printf("%s\n",head->curr_path);
+		head = head->next;
+	}
+	
+
+}
+
+Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path){
+	Tree head = path_addr->children_head;
+	while (head != NULL){
+		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY){
+			return head;
+		}
+		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == REGULAR_FILE){
+			printf("%s '%s': Not a directory\n",err_msg,path);
+			return NULL;
+		}
+		head = head->next;
+	}
+	printf("%s '%s': No such file or directory\n",err_msg,path);
+	return NULL;
+}
+
 char *GetParentPath(Tree path_addr){
 	return path_addr->canonical_path;
 }
@@ -241,11 +262,6 @@ char *GetCanonicalPath(Tree CWD){
 	return CWD->canonical_path;
 }
 
-// implement the functions declared in utility.h here
-/*void TreeFree(Tree t, bool freeRecords) {
-    doTreeFree(t->Root, freeRecords);
-    free(t);
-}*/
 
 void FsFreeTree(Tree tree) {
     if (tree != NULL) {
@@ -264,72 +280,8 @@ void FsFreeTree(Tree tree) {
     }
 	// return;
 }
-/*
-void FsFreeTree(Tree Root,Tree tree){
-	if(tree->next == NULL && tree->children_head ==NULL){
-		free(tree->canonical_path);
-		free(tree->curr_path);
-		free(tree->parent_path);
-		free(tree);
-		return;
-	}
-	else if(tree->next != NULL  && tree->children_head != NULL){
-		FsFreeTree(Root,tree->next);
-	}
-	else if(tree->next != NULL  && tree->children_head ==NULL){
-		FsFreeTree(Root,tree->next);
-	}
-	else if(tree->next == NULL && tree->children_head != NULL){
-		FsFreeTree(Root,tree->children_head);
-	}
-	return;
-}*/
-/*
-void FsFreeTree(Tree Root,Tree tree){
-	//IF NO CHILD NO NEXT FREE RETURN
-	if(tree->next == NULL && tree->children_head ==NULL){
-		free(tree->canonical_path);
-		free(tree->curr_path);
-		free(tree->parent_path);
-		free(tree);
-		return;
-	}
-	//IF CHILD EXISTS GO CHILD
-	else if(tree->children_head != NULL){
-		FsFreeTree(Root,tree->children_head);
-	}
-	//IF NEXT EXISTS GO NEXT
-	else if(tree->next != NULL){
-		FsFreeTree(Root,tree->next);
-	}
-	
-	return;
-}*/
-/*void FsFreeTree(Tree Root,Tree tree){
-	//IF NO CHILD NO NEXT FREE RETURN
-	if(tree->next == NULL && tree->children_head ==NULL){
-		free(tree->canonical_path);
-		free(tree->curr_path);
-		free(tree->parent_path);
-		free(tree);
-		return;
-	}
-	//IF CHILD EXISTS GO CHILD
-	else if(tree->next == NULL && tree->children_head != NULL){
-		FsFreeTree(Root,tree->children_head);
-	}
-	//IF NEXT EXISTS GO NEXT
-	else if(tree->next != NULL  && tree->children_head != NULL){
-		printf("something broke");
-	}
-	//IF NEXT EXISTS GO NEXT
-	else if(tree->next != NULL  && tree->children_head ==NULL){
-		FsFreeTree(Root,tree->next);
-	}
-	
-	return;
-}*/
-//Return NewTree at Given Path
+
+
 Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,STR_Node path_part){
 	if(Q_PATH->size == 1){
 		return NULL;
@@ -392,126 +344,14 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 	return tree;
 }
 
-/*
-Tree ReturnTreeDir(Tree tree, char *path,char *err_msg,Queue Q_PATH,STR_Node path_part){
-	//ERROR CHECKING
-	//check if tail is existing
-	if(strcmp(Q_PATH->tail->item,"/.")==0){
-		printf("%s '%s': File exists\n",err_msg,path);
-		return NULL;
-	}
-	else if(strcmp(Q_PATH->tail->item,"/..")==0){
-		printf("%s '%s': File exists\n",err_msg,path);
-		return NULL;
-	}
-	else if(tree->tree_type == DIRECTORY && strcmp(tree->curr_path,path_part->item) == 0 && path_part->next == NULL){
-		printf("%s '%s': File exists\n",err_msg,path);				
-		return NULL;
-	}
-	else if(tree->tree_type == REGULAR_FILE && strcmp(tree->curr_path,path_part->item) == 0){
-		printf("%s '%s': Not a directory\n",err_msg,path);				
-		return NULL;
-	}
-	else if(tree == NULL){
-		printf("%s '%s': No such file or directory\n",err_msg,path);
-		return NULL;
-	}
-	//Q_PATH will always be of at least size 2
-	if(Q_PATH->size == 2){
-		return tree;
-	}
-	//NAVIGATE FILE STRUCTURE SYSTEM
-	//check if path is one before new directory name
-	if(path_part->next->next != NULL){
-		//check if tree is a file i.e. not a directory
-		
-		//if tree local directory matches local directory in queue go to child
-		if(tree->next != NULL && tree->children_head ==NULL  && strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == DIRECTORY){
-			//CHANGE WHAT IT DOES
-			return Tree;
-		}
-		if(tree->next != NULL && tree->children_head !=NULL  && strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == DIRECTORY){
-			//CHANGE WHAT IT DOES
-			tree = ReturnTreeDir(tree->children_head,path,err_msg,Q_PATH,path_part->next);
-		}
-		//how to handle . and ..
-		else if(strcmp(".",path_part->item) == 0){
-			tree = ReturnTreeDir(tree->curr_tree,path,err_msg,Q_PATH,path_part->next);
-		}
-		else if(strcmp("..",path_part->item) == 0){
-			tree = ReturnTreeDir(tree->parent,path,err_msg,Q_PATH,path_part->next);
-		}
-		
-		//if tree local directory doesn't match go to next subtree
-		else if(tree->next != NULL && tree->children_head ==NULL  && strcmp(tree->curr_path,path_part->item) != 0){
-			tree = ReturnTreeDir(tree->next,path,err_msg,Q_PATH,path_part);
-		}
-		
-	}
-	//return if no more subtrees to navigate and matches last item
-	if(strcmp(Q_PATH->tail->item,tree->curr_path) ==  0 && tree->tree_type == DIRECTORY){
-		return tree;
-	}
 
-	printf("%s '%s': No such file or directory\n",err_msg,path);
-	return NULL;
-	
-}*/
 void PrintCanonicalPath(Tree tree){
 	printf("%s\n",tree->canonical_path);
 }
 STR_Node GetQPathHead(Queue Q_PATH) {
 	return Q_PATH->head;
 }
-/*		//check if end of path ends in a "." or ".."
-		if(strcmp(Q_PATH->tail->item,".")==0){
-			printf("%s '%s': File exists\n",err_msg,path);
-			
-			return NULL;
-		}
-		if(strcmp(Q_PATH->tail->item,"..")==0){
-			printf("%s '%s': File exists\n",err_msg,path);
-			
-			return NULL;
-		}
-		cur = cur->children_head;
 
-		//iterate through queue of local path strings
-		//e.g. if *path is /tmp/tyyt/omg
-		//Q_PATH is tmp->tyyt->omg->NULL
-		while(curr_local_dir->next != NULL){
-			//iterate through list of children trees and check if path matches local_dir in Q_PATH list
-			if(cur == NULL){
-				printf("%s '%s': No such file or directory\n",err_msg,path);
-				
-				return NULL;  
-			}
-			while(cur != NULL){
-				if(strcmp(curr_local_dir->item,".")==0){
-					continue;
-				}
-
-				else if(strcmp(curr_local_dir->item,"..")==0){
-					cur = cur->parent;
-				} 
-				//if curr_path string matches string of localdir in directory queue of strings 
-				else if(strcmp(curr_local_dir->item,cur->curr_path)==0 && cur->tree_type == DIRECTORY) {
-					cur = cur->children_head;
-				}
-				else if(strcmp(cur->curr_path,curr_local_dir->item) == 0 && cur->tree_type ==REGULAR_FILE){
-						printf("%s '%s': Not a directory\n",err_msg,path);
-						
-						return NULL;
-				}
-				else  {
-					cur = cur->next;
-				}
-			}
-			curr_local_dir = curr_local_dir->next;
-		}
-		//do pointer modification of path name local
-		return cur;
-}*/
 char* GetPathNameTail(Queue Q_PATH){
 	return Q_PATH->tail->item;
 }

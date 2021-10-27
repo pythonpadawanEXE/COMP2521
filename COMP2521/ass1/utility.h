@@ -26,11 +26,13 @@ void FsFreeTree(Tree tree);
 void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_name_tail);
 void prepend(char* s, const char* t);
 void PrintCanonicalPath(Tree tree);
+void PrintLs(Tree tail_tree,char *err_msg,char *path);
 
 Tree ReturnPathFromCur(Tree Root,char* token,Tree cur,char *path,char *err_msg);
 //input needs to change
 Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type,Tree parent_tree);
 Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,STR_Node path_part);
+Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path);
 bool check_is_directoryname(char* token);
 
 Queue ReturnQPath(char *path);

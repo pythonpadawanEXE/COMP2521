@@ -29,6 +29,8 @@ int main(void) {
 	FsMkfile(fs, "home/jas/mail.txt");
 	FsTree(fs, "/home/jas");
 	printf("---\n"); // marker to separate output
+	FsCd(fs, "/home");
+	FsLs(fs,"/home");
 	FsTree(fs, NULL);
     FsFree(fs);
 }
