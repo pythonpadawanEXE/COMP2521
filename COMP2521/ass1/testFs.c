@@ -11,16 +11,26 @@
 
 int main(void) {
     Fs fs = FsNew();
-	//test alphabetical ordering
-    FsMkdir(fs, "bin");
-	FsMkdir(fs, "din");
-	FsMkdir(fs, "ain");
-	FsMkdir(fs, "cin");
-	FsMkdir(fs, "home");
-	FsMkdir(fs, "home/jas");
 	printf("---\n"); // marker to separate output
-	FsLs(fs,"/home");
-	FsLs(fs,"/");
+	FsLs(fs, "/");
+	printf("---\n");
+	FsMkfile(fs, "hello.txt");
+	FsMkdir(fs, "tmp");
+	FsLs(fs, "/");
+	//test alphabetical ordering
+    // FsMkdir(fs, "bin");
+	// FsMkdir(fs, "din");
+	// FsMkdir(fs, "ain");
+	// FsMkdir(fs, "cin");
+	// FsMkdir(fs, "home");
+	// FsMkdir(fs, "home/jas");
+	// FsMkdir(fs, "home/ok");
+	// printf("---\n"); // marker to separate output
+	// FsLs(fs,"/home");
+	// printf("---\n"); // marker to separate output
+	// FsLs(fs,"/");
+	// printf("---\n"); // marker to separate output
+	// FsLs(fs,"/(root)");
 	//test multi level
 	/*FsMkdir(fs, "bin/yes");
 	FsMkdir(fs, "bin/yes/omg");

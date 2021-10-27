@@ -208,11 +208,19 @@ void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_nam
 	if(strcmp(path_name_tail,".")==0){
 		printf("%s '%s': File exists\n",err_msg,path);
 		FsFreeTree(NewTree);
+		NewTree = NULL;
 		return;
 	}
 	else if(strcmp(path_name_tail,"/..")==0){
 		printf("%s '%s': File exists\n",err_msg,path);
 		FsFreeTree(NewTree);
+		NewTree = NULL;
+		return;
+	}
+	else if(strcmp(path_name_tail,"")==0){
+		printf("%s '%s': File exists\n",err_msg,path);
+		FsFreeTree(NewTree);
+		NewTree = NULL;
 		return;
 	}
 	
@@ -223,22 +231,25 @@ void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_nam
 
 
 void PrintLs(Tree tail_tree,char *err_msg,char *path){
-	Tree head = tail_tree;
-	if(tail_tree == NULL){
-		printf("%s '%s': No such file or directory\n",err_msg,path);
-	}
-	else if(tail_tree->tree_type == REGULAR_FILE){
+	
+	if(tail_tree->tree_type == REGULAR_FILE){
 		printf("%s '%s': Not a directory\n",err_msg,path);
 	}
+	Tree head = tail_tree->children_head;
+	//MAGIC NUMBER 1 to offset prepended slash
 	while (head != NULL){
-		printf("%s\n",head->curr_path);
+		printf("%s\n",head->curr_path + 1);
 		head = head->next;
 	}
 	
 
 }
 
-Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path){
+Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path,Queue Q_PATH){
+	//some condition when path_addr is  root i.e. head is tail
+	if(Q_PATH->size == 1){
+		return path_addr;
+	}
 	Tree head = path_addr->children_head;
 	while (head != NULL){
 		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY){
@@ -261,7 +272,19 @@ char *GetParentPath(Tree path_addr){
 char *GetCanonicalPath(Tree CWD){
 	return CWD->canonical_path;
 }
+Tree GetRootChildrenHead(Tree tree){
+	return tree->children_head;
+}
 
+void FreeRoot(Tree tree){
+	free(tree->curr_path);
+	tree->curr_path = NULL;
+	free(tree->parent_path);
+	tree->parent_path = NULL;
+	free(tree->canonical_path);
+	tree->canonical_path = NULL;
+	free(tree);
+}
 
 void FsFreeTree(Tree tree) {
     if (tree != NULL) {
@@ -270,14 +293,18 @@ void FsFreeTree(Tree tree) {
         
 		if (tree->curr_path != NULL) {
             free(tree->curr_path);
+			tree->curr_path = NULL;
         }
 		if (tree->parent_path != NULL) {
-            free(tree->parent_path);
+            //free(tree->parent_path);
+			tree->parent_path = NULL;
         }
 		if (tree->canonical_path != NULL) {
             free(tree->canonical_path);
+			tree->canonical_path = NULL;
         }
         free(tree);
+		tree = NULL;
     }
 	// return;
 }
@@ -290,9 +317,13 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 	if(Q_PATH->size == 2){
 		return tree;
 	}
+	// is this correct?
+	if(strcmp("/",path) == 0 || strcmp("",path) ==0  ){
+		return  Root;
+	}
 	//printf("start:%s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
 	while(path_part->next != NULL){
-		printf("%s  %s\n",tree->curr_path,path_part->item);
+		//printf("%s  %s\n",tree->curr_path,path_part->item);
 		//IF MATCH BUT NOT A DIRECTORY
 		if(strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == REGULAR_FILE){
 			//printf("IF MATCH BUT NOT A DIRECTORY start: %s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
@@ -307,6 +338,7 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 			tree = tree->parent;
 			path_part = path_part->next;
 		}
+		
 		//IF MATCH AND IS DIRECTORY
 		else if(strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == DIRECTORY){
 			//printf("//IF MATCH AND IS DIRECTORY start: %s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
@@ -375,8 +407,8 @@ Queue ReturnQPath(char *path){
 		QueueEnqueue(q,ROOT_PATH);
 		const char s[2] = "/";
 		char *token;
-        printf("path: %s\n",path);
-        printf("delimiter: %s\n",s);
+        //printf("path: %s\n",path);
+        //printf("delimiter: %s\n",s);
 		//separate path via / delimiter
         char *tmp_path = malloc((PATH_MAX+1)*sizeof(char));
 		char *tmp_dir = malloc((PATH_MAX+1)*sizeof(char));
@@ -397,7 +429,7 @@ Queue ReturnQPath(char *path){
 				prepend(tmp_dir,"/");
                 QueueEnqueue(q,tmp_dir);
             }
-			printf( " %s\n", token );
+			//printf( " %s\n", token );
 			token = strtok(NULL, s);
 		}
 		free(tmp_dir);
