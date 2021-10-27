@@ -1,0 +1,23 @@
++ Harry
++ Ron
++ Hermione
+f Harry Ron
+f Ron Hermione
+m Harry Hermione
++ John
++ Crab
++ Delilah
++ Draco
++ Sidius
++ Bob
+f Bob Sidius
+f Bob Draco
+f Bob Crab
+f Bob John
+m Delilah Bob
+m Bob Harry
+f Hermione Crab
+f Hermione Sidius
+f Hermione Draco
+m Bob Hermione
+

@@ -1,0 +1,69 @@
+
+NOTE:
+- Your time complexities should be expressed in big-O notation and be in
+  terms of n, where n is the size (i.e., number of items) of the queue
+
+=========
+ListQueue
+=========
+
+-------------+----------------------------------------------------------
+             |                    time complexity
+  operation  +-----------------+------------------+---------------------
+             |    best case    |    worst case    |    average case
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   enqueue   |                 |                  |
+             |      O(1)       |        O(1)      |     O(1)
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   dequeue   |      O(1)       |           O(1)   |  O(1)
+             |                 |                  |
+-------------+-----------------+------------------+---------------------
+
+doesn't change with size
+==========
+ArrayQueue
+==========
+
+-------------+----------------------------------------------------------
+             |                    time complexity
+  operation  +-----------------+------------------+---------------------
+             |    best case    |    worst case    |    average case
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   enqueue   |        O(1)     |    O(log(n))     |         O(1)
+             |                 |                  |
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   dequeue   |        O(n)     |      O(n)        | O(n)
+             |                 |                  |
+-------------+-----------------+------------------+---------------------
+enqueue:
+realloc changes enqeue with log(n) complexity as it occurs everytime capacity needs to be doubled
+deqeueu:
+depends on size to get to shift all the numbers and has no branches
+==================
+CircularArrayQueue
+==================
+
+-------------+----------------------------------------------------------
+             |                    time complexity
+  operation  +-----------------+------------------+---------------------
+             |    best case    |    worst case    |    average case
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   enqueue   |       O(1)      |        O(n)      |      O(1)
+             |                 |                  |
+-------------+-----------------+------------------+---------------------
+             |                 |                  |
+   dequeue   |        O(1)     |         O(1)     |        O(1)
+             |                 |                  |
+-------------+-----------------+------------------+---------------------
+enqueue:
+best case when no realloc needed just assignings
+worst case approximately n + log(n) simplifies to O(n) where the realloc forces 
+n-1 numbers to shift
+averages out to O(1) as the size becomes bigger realloc isnt called
+dequeue:
+doesnt have other branches or depends on size

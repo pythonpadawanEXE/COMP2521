@@ -1,0 +1,36 @@
+Input	Initial	Number	AvgTime		AvgTime
+Size	Order	of Runs	for sortIntList	for sort
+10000	random	5	0.12		0.00
+10000	sorted	5	0.00		0.00
+10000	reverse	5	0.00		0.00
+20000	random	5	0.57		0.00
+20000	sorted	5	0.00		0.00
+20000	reverse	5	0.00		0.00
+50000	random	5	5.83		0.01
+50000	sorted	5	0.01		0.00
+50000	reverse	5	0.01		0.01
+60000	random	5   10.29		0.02
+60000	sorted	5	0.01		0.01
+60000	reverse	5	0.01		0.01
+70000	random	5	15.49		0.02
+70000	sorted	5	0.01		0.01
+70000	reverse	5	0.01		0.01
+80000	random	5	22.28		0.03
+80000	sorted	5	0.01		0.01
+80000	reverse	5	0.01		0.01
+90000	random	5	30.71		0.04
+90000	sorted	5	0.01		0.01
+90000	reverse	5	0.02		0.02
+100000	random	5	39.32		0.04
+100000	sorted	5	0.02		0.02
+100000	reverse	5	0.01		0.01
+
+The random sort has a time complexity of O(n^2) for sortIntList
+evidently sort has a better algorithm upon googling sort command from linux
+uses a mergesort algorithm which has time complexity O(nlog(n))
+The sortIntList time complexity can be seen if we let avg_time_taken 
+to be in proportion 
+i.e. if n^2*constant ~ avg_time_taken
+Sorted and Reverse take less comparisons then random  we would expect reverse
+to take longer however this cannot be easily shown with the current size of
+sequence.

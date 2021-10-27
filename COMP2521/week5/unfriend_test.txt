@@ -1,0 +1,11 @@
+?
++ Harry
++ Ron
++ Hermione
+f Harry Ron
+f Ron Hermione
+u Harry Ron
+s Harry Ron
+s Ron Hermione
+u Hermione Hermione
+

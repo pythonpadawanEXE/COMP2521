@@ -1,0 +1,35 @@
+
+NOTE:
+- Your time complexities should be expressed in big-O notation and be in
+  terms of n, where n is the number of people who  have  been  added  to
+  Friendbook.
+
+===============
+  FbUnfriend
+===============
+
+- Worst case time complexity: O(log(n))
+
+- Explanation: ...
+    Time complexity arises from nameToId everything else O(1). In nameToID
+    there are functions MapContains and MapGet which call recursively a Map 
+    datastructure which is a binary tree structure.
+    with a log(n) search and log(b) get complexity.
+===============
+FbMutualFriends
+===============
+
+- Worst case time complexity: O(n)
+
+- Explanation: ...
+    Time complexity arises from nameToID which has log(n) complexity however
+    this is trumped by the for loop which has an n complexty dictated by the size
+    of the fb->numPeople.
+===============
+ FbFriendRecs1
+===============
+
+- Worst case time complexity: O(n^2)
+
+- Explanation: ...
+    

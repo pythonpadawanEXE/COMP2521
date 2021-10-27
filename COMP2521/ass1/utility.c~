@@ -1,0 +1,410 @@
+// COMP2521 Assignment 1
+
+// Written by:Jake Edwards
+// Date: 24/10/2021
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "FileType.h"
+#include "utility.h"
+
+struct tree {
+    char *canonical_path;
+    char *curr_path;
+    char *parent_path;
+    int  children_size;
+    FileType tree_type;
+    Tree curr_tree;
+    Tree parent;
+    Tree next;
+    Tree children_head;
+    Tree children_tail;
+};
+struct str_node {
+	Item item;
+	STR_Node next;
+};
+struct string_queue{
+	STR_Node head;
+	STR_Node tail;
+	int  size;
+};
+
+/*
+
+
+
+START OF QUEUE FUNCTIONS
+(TAKEN FROM LAB2)
+
+
+
+
+*/
+
+Queue QueueNew(void) {
+	Queue q = malloc(sizeof(*q));
+	if (q == NULL) {
+		fprintf(stderr, "couldn't allocate Queue\n");
+		exit(EXIT_FAILURE);
+	}
+
+	q->head = NULL;
+	q->tail = NULL;
+	q->size = 0;
+	return q;
+}
+
+/**
+ * Frees all resources associated with the given queue
+ */
+void QueueFree(Queue q) {
+	Node curr = q->head;
+	while (curr != NULL) {
+		Node temp = curr;
+		curr = curr->next;
+		free(temp);
+	}
+	free(q);
+}
+
+/**
+ * Adds an item to the end of the queue
+ */
+void QueueEnqueue(Queue q, Item it) {
+	// TODO: MARK
+	Node new_node = malloc(sizeof(Node));
+	if (new_node == NULL) {
+		fprintf(stderr, "couldn't allocate Node");
+		exit(EXIT_FAILURE);
+	}
+	new_node->next = NULL;
+	new_node->item = it;
+	//if list is empty
+	if(q-> head == NULL || q->size == 0){
+	    q->head = new_node;
+	    q->tail = new_node;
+	    q->size++;
+	}
+	//if list not empty
+	else {
+	    new_node->item = it;
+	    q->tail->next = new_node;
+	    q->tail = new_node;
+	    q->size++;
+	}
+}
+
+/**
+ * Removes an item from the front of the queue and returns it
+ * Assumes that the queue is not empty
+ */
+Item QueueDequeue(Queue q) {
+    //How should an empty list be tested for dequeue?
+    if(q-> head == NULL || q->size == 0){
+        fprintf(stderr, "couldn't Dequeue list appears empty");
+		exit(EXIT_FAILURE);
+    }
+	Item item = q->head->item;
+	Node temp = q->head;
+	q->head = q->head->next;
+	q->size--;
+	free(temp);
+	
+	return item;
+}
+
+/**
+ * Gets the item at the front of the queue without removing it
+ * Assumes that the queue is not empty
+ */
+Item QueueFront(Queue q) {
+	assert(q->size > 0);
+
+	return q->head->item;
+}
+
+/**
+ * Gets the size of the given queue
+ */
+int QueueSize(Queue q) {
+	return q->size;
+}
+
+/**
+ * Returns true if the queue is empty, and false otherwise
+ */
+bool QueueIsEmpty(Queue q) {
+	return q->size == 0;
+}
+
+/**
+ * Prints the queue to the given file with items space-separated
+ */
+void QueueDump(Queue q, FILE *fp) {
+	for (Node curr = q->head; curr != NULL; curr = curr->next) {
+		fprintf(fp, "%s ", curr->item);
+	}
+	fprintf(fp, "\n");
+}
+/*
+
+
+
+START OF TREE FUNCTIONS
+
+
+
+
+
+*/
+
+//make new tree with
+Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type,Tree parent_tree){
+    Tree NewTree = malloc(sizeof(struct tree));
+    if (NewTree == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+    char *canonical_path_alloc = malloc((PATH_MAX+1)*sizeof(char));
+    if (canonical_path_alloc == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(canonical_path_alloc,canonical_path);
+    char *curr_path_alloc = malloc((PATH_MAX+1)*sizeof(char));
+    if (curr_path_alloc == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(curr_path_alloc,curr_path);
+    char *parent_path_alloc = malloc((PATH_MAX+1)*sizeof(char));
+    if (parent_path_alloc == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(parent_path_alloc,parent_path);
+    NewTree->canonical_path = canonical_path_alloc;
+    NewTree->curr_path = curr_path_alloc;
+    NewTree->parent_path = parent_path_alloc;
+    NewTree->children_size = 0;
+    NewTree->tree_type = tree_type;
+    NewTree->curr_tree = NewTree;
+    NewTree->parent = parent_tree;
+    NewTree->children_head = NULL;
+    NewTree->next = NULL;
+    return NewTree;
+}
+
+void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path){
+  Tree tree_parent = path_addr;
+  Tree head = path_addr->children_head;
+  if(head == NULL){
+    printf("%s '%s': No such file or directory\n",err_msg,path);
+    FsFreeTree(path_addr,NewTree);
+    return;
+  }
+  ChildrenTreeListInsertInOrder(tree_parent,NewTree,err_msg,path);
+  
+}
+
+char *GetParentPath(Queue Q_PATH){
+  char *parent_path = NULL;
+  STR_Node cur = Q_PATH->head;
+  while(cur->next != NULL){
+    strcat(parent_path,cur->item);
+    cur = cur->next;
+  }
+  return parent_path;
+}
+
+char *GetCanonicalPath(Tree CWD){
+  return CWD->canonical_path;
+}
+
+// implement the functions declared in utility.h here
+void FsFreeTree(Tree Root,Tree tree){
+  if(tree->children_head == NULL){
+      free(tree->canonical_path);
+      free(tree->curr_path);
+      free(tree->parent_path);
+      free(tree);
+  }
+  Tree curr = tree->children_head;
+	while (curr != NULL) {
+		Tree temp = curr;
+		curr = curr->next;
+		FsFreeTree(Root,temp);
+	}
+	return;
+}
+
+//Return NewTree at Given Path
+Tree ReturnTreeDir(Tree Root, char *path,char *err_msg,Queue Q_PATH){
+    STR_Node curr_local_dir = Q_PATH->head;
+    Tree cur = Root;
+
+    //check if end of path ends in a "." or ".."
+    if(strcmp(Q_PATH->tail->item,".")==0){
+      printf("%s '%s': File exists\n",err_msg,path);
+      QueueFree(Q_PATH);
+      return NULL;
+    }
+    if(strcmp(Q_PATH->tail->item,"..")==0){
+      printf("%s '%s': File exists\n",err_msg,path);
+      QueueFree(Q_PATH);
+      return NULL;
+    }
+    cur = cur->children_head;
+
+    //iterate through queue of local path strings
+    //e.g. if *path is /tmp/tyyt/omg
+    //Q_PATH is tmp->tyyt->omg->NULL
+    while(curr_local_dir->next != NULL){
+      //iterate through list of children trees and check if path matches local_dir in Q_PATH list
+      if(cur == NULL){
+        printf("%s '%s': No such file or directory\n",err_msg,path);
+        QueueFree(Q_PATH);
+        return NULL;  
+      }
+      while(cur != NULL){
+        if(strcmp(curr_local_dir->item,".")==0){
+          continue;
+        }
+
+        else if(strcmp(curr_local_dir->item,"..")==0){
+          cur = cur->parent;
+        } 
+        //if curr_path string matches string of localdir in directory queue of strings 
+        else if(strcmp(curr_local_dir->item,cur->curr_path)==0 && cur->tree_type == DIRECTORY) {
+          cur = cur->children_head;
+        }
+        else if(strcmp(cur->curr_path,curr_local_dir->item) == 0 && cur->tree_type ==REGULAR_FILE){
+            printf("%s '%s': Not a directory\n",err_msg,path);
+            QueueFree(Q_PATH);
+            return NULL;
+        }
+        else  {
+          cur = cur->next;
+        }
+      }
+      curr_local_dir = curr_local_dir->next;
+    }
+    //do pointer modification of path name local
+    return cur;
+}
+char* GetPathNameTail(Queue Q_PATH){
+  return Q_PATH->tail->item;
+}
+
+bool check_is_directoryname(char* token){
+  if(strchr(token,'.') != NULL){
+    return false;
+  }
+  return true;
+}
+
+Queue ReturnQPath(char *path){
+    Queue q = QueueNew();
+    const char s[2] = "/";
+    char *token;
+    //separate path via / delimiter
+    token = strtok(path, s);
+    if(token != NULL){
+        QueueEnqueue(q,token);
+    }
+    
+    //loop separating path via / delimiter
+    while( token != NULL ) {
+      printf( " %s\n", token );
+      token = strtok(NULL, s);
+      if(token != NULL){
+        QueueEnqueue(q,token);
+      }
+    }
+    return q;   
+}
+
+/**
+ * Append one tree to the end of  tree_parent children.
+ */
+void ChildrenTreeListAppend(Tree tree_parent, Tree NewTree) {
+	
+	if (tree_parent->children_head == NULL) {
+		tree_parent->children_head = tree_parent->children_tail = NewTree;
+	} else {
+		tree_parent->children_tail->next = NewTree;
+		tree_parent->children_tail = NewTree;
+	}
+	tree_parent->children_size++;
+}
+
+/**
+ * Prepend one tree to the start of  tree_parent children.
+ */
+void ChildrenTreeListPrepend(Tree tree_parent, Tree NewTree) {
+	if (tree_parent->children_head == NULL) {
+		tree_parent->children_head = tree_parent->children_tail = NewTree;
+	} else {
+		NewTree->next = tree_parent->children_head;
+		tree_parent->children_head = NewTree;
+	}
+	tree_parent->children_size++;
+}
+
+/**
+ * Insert one tree into correct place in a sorted TreeList.
+ */
+void ChildrenTreeListInsertInOrder(Tree tree_parent, Tree NewTree,char *err_msg,char *path) {
+	//if empty list
+	if (tree_parent->children_head == NULL) {
+		ChildrenTreeListAppend(tree_parent,NewTree);
+	}
+	//prepend if New Tree alphabetically before current head
+	else if (strcmp(NewTree->curr_path,tree_parent->children_head->curr_path) < 0){
+		ChildrenTreeListPrepend(tree_parent,NewTree);
+	}
+  else if(strcmp(NewTree->curr_path,tree_parent->children_head->curr_path) == 0 ){
+    printf("%s '%s': File exists\n",err_msg,path);
+    FsFreeTree(tree_parent,NewTree);
+    return;
+  }
+	//if integer inserted at end i.e. append
+	else if (strcmp(NewTree->curr_path,tree_parent->children_tail->curr_path) > 0 ){
+		ChildrenTreeListAppend(tree_parent,NewTree);
+	}
+  else if(strcmp(NewTree->curr_path,tree_parent->children_tail->curr_path) == 0 ){
+    printf("%s '%s': File exists\n",err_msg,path);
+    FsFreeTree(tree_parent,NewTree);
+    return;
+  }
+	//integer inserted in middle of list
+	else {
+		Tree n = NewTree;
+		Tree curr = tree_parent->children_head ;
+		while( curr->next != NULL){
+      //if new directory is alphabetically between next directory and current directory
+			if(strcmp(NewTree->curr_path,curr->next->curr_path) < 0 && strcmp(NewTree->curr_path,curr->curr_path) > 0){
+				n->next = curr->next;
+				curr->next = n;
+				break;
+			}
+      else if(strcmp(NewTree->curr_path,curr->curr_path) == 0 ){
+        printf("%s '%s': File exists\n",err_msg,path);
+        FsFreeTree(tree_parent,NewTree);
+        return;
+      }
+			curr = curr->next;
+		}
+
+		tree_parent->children_size++;
+	}
+	
+}
+
+
