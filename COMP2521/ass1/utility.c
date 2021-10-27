@@ -177,7 +177,7 @@ Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType 
 		}
 		//These strings should all be mallocced by other functions
 		char *canonical_path_alloc = canonical_path;
-		char *curr_path_alloc = curr_path ;
+		char *curr_path_alloc = curr_path;
 		char *parent_path_alloc = parent_path;
 		
 		NewTree->canonical_path = canonical_path_alloc;
@@ -267,14 +267,15 @@ void FsFreeTree(Tree tree) {
     if (tree != NULL) {
         FsFreeTree(tree->children_head);
         FsFreeTree(tree->next);
-        if (tree->canonical_path != NULL) {
-            free(tree->canonical_path);
-        }
+        
 		if (tree->curr_path != NULL) {
             free(tree->curr_path);
         }
 		if (tree->parent_path != NULL) {
             free(tree->parent_path);
+        }
+		if (tree->canonical_path != NULL) {
+            free(tree->canonical_path);
         }
         free(tree);
     }

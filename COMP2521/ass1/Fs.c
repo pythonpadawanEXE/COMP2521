@@ -36,7 +36,7 @@ Fs FsNew(void) {
     strcpy(RootPath,ROOT_PATH);
     strcpy(RootPath1,ROOT_PATH);
     strcpy(RootPath2,ROOT_PATH);
-    Tree NewTree = GetNewTree(RootPath,RootPath,RootPath,DIRECTORY,NULL);
+    Tree NewTree = GetNewTree(RootPath,RootPath1,RootPath2,DIRECTORY,NULL);
     NewFs->Root = NewTree;
     NewFs->CWD = NewTree;
     return NewFs;
@@ -52,7 +52,6 @@ void FsFree(Fs fs) {
     if(fs->Root != NULL){
         //will path variabls in tree structs need to be mallocced and freed?
         FsFreeTree(fs->Root);
-        assert(fs->CWD == NULL);
         free(fs);
     }
      
@@ -78,7 +77,9 @@ void FsMkdir(Fs fs, char *path) {
     if(path_addr != NULL){
         //make new tree
         //getNewRootTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type)
-        char *parent_path = GetParentPath(path_addr);//GetParentPath(Q_PATH,path);
+        char *parent_path = malloc((PATH_MAX+1)*sizeof(char));
+        strcpy(parent_path,GetParentPath(path_addr));
+        //GetParentPath(Q_PATH,path);
         char *canonical_path = malloc((PATH_MAX+1)*sizeof(char));
         if (canonical_path == NULL) {
 				fprintf(stderr, "error: out of memory\n");
@@ -153,7 +154,14 @@ void FsCd(Fs fs, char *path) {
     Queue Q_PATH = ReturnQPath(path);
     STR_Node path_part = GetQPathHead(Q_PATH);
     path_name_tail = GetPathNameTail(Q_PATH);
-    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+    Tree path_addr = NULL;
+    if (path != NULL){
+        path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+    }
+    else{
+        path_addr = fs->CWD;
+    }
+    
     if (path_addr != NULL){
         // make function for find path name tail directory from directories at level of path_addr
         // go path_add->children_head then iteratre through for curr_path matching path_name_tail
@@ -162,22 +170,29 @@ void FsCd(Fs fs, char *path) {
     }
     QueueFree(Q_PATH);
 }
-
+// make function for ls from directories at level of path_addr
+// go path_addr->children_head then iteratre through for curr_path matching path_name_tail then
+// go path_name_tail->children_head and iteratre through printing all trees
+// make function for find path name tail directory from directories at level of path_addr
+// go path_add->children_head then iteratre through for curr_path matching path_name_tail
 void FsLs(Fs fs, char *path) {
     //TODO
-    char *err_msg = "cd: ";
+    char *err_msg = "ls: ";
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
     Tree tree = fs->Root;
     Queue Q_PATH = ReturnQPath(path);
     STR_Node path_part = GetQPathHead(Q_PATH);
     path_name_tail = GetPathNameTail(Q_PATH);
-    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
-    // make function for ls from directories at level of path_addr
-    // go path_addr->children_head then iteratre through for curr_path matching path_name_tail then
-    // go path_name_tail->children_head and iteratre through printing all trees
+    Tree path_addr = NULL;
+    if (path != NULL){
+        path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+    }
+    else{
+        path_addr = fs->CWD;
+    }
+    
     if (path_addr != NULL){
-        // make function for find path name tail directory from directories at level of path_addr
-        // go path_add->children_head then iteratre through for curr_path matching path_name_tail
+        
         Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path);
         PrintLs(tail_tree,err_msg,path);
     }

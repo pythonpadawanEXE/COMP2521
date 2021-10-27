@@ -16,8 +16,13 @@ int main(void) {
 	FsMkdir(fs, "din");
 	FsMkdir(fs, "ain");
 	FsMkdir(fs, "cin");
+	FsMkdir(fs, "home");
+	FsMkdir(fs, "home/jas");
+	printf("---\n"); // marker to separate output
+	FsLs(fs,"/home");
+	FsLs(fs,"/");
 	//test multi level
-	FsMkdir(fs, "bin/yes");
+	/*FsMkdir(fs, "bin/yes");
 	FsMkdir(fs, "bin/yes/omg");
 	FsMkfile(fs, "bin/yes/omg/yes.txt");
 	FsMkfile(fs, "cin/pwd");
@@ -30,8 +35,8 @@ int main(void) {
 	FsTree(fs, "/home/jas");
 	printf("---\n"); // marker to separate output
 	FsCd(fs, "/home");
-	FsLs(fs,"/home");
-	FsTree(fs, NULL);
+	
+	FsTree(fs, NULL);*/
     FsFree(fs);
 }
 
