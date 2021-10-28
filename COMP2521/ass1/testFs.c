@@ -11,12 +11,17 @@
 
 int main(void) {
     Fs fs = FsNew();
-	printf("---\n"); // marker to separate output
-	FsLs(fs, "/");
-	printf("---\n");
-	FsMkfile(fs, "hello.txt");
 	FsMkdir(fs, "tmp");
-	FsLs(fs, "/");
+	FsCd(fs, "bin");
+	FsCd(fs, "tmp/dir123");
+	// FsLs(fs, "tmp/.././hello.txt");
+	//FsLs(fs, NULL);
+	// printf("---\n"); // marker to separate output
+	// FsLs(fs, "/");
+	// printf("---\n");
+	// FsMkfile(fs, "hello.txt");
+	// FsMkdir(fs, "tmp");
+	// FsLs(fs, "/");
 	//test alphabetical ordering
     // FsMkdir(fs, "bin");
 	// FsMkdir(fs, "din");

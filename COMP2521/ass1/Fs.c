@@ -43,7 +43,14 @@ Fs FsNew(void) {
 }
 
 void FsGetCwd(Fs fs, char cwd[PATH_MAX + 1]) {
-    cwd = GetCanonicalPath(fs->CWD);
+    char *str = GetCanonicalPath(fs->CWD);
+    if(strcmp(str,ROOT_PATH) == 0){
+        strncpy(cwd,str,strlen("/"));
+    }
+    else{
+        strcpy(cwd,str +strlen(ROOT_PATH));
+    }
+
 }
 
 void FsFree(Fs fs) {
@@ -81,7 +88,7 @@ void FsMkdir(Fs fs, char *path) {
     if(path_addr != NULL){
         //make new tree
         //getNewRootTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type)
-         char *parent_path = GetParentPath(path_addr);
+        char *parent_path = GetParentPath(path_addr);
         char *canonical_path = malloc((PATH_MAX+1)*sizeof(char));
         char *safe_canonical_path = malloc((PATH_MAX+1)*sizeof(char));
         assert(canonical_path != NULL);
@@ -92,7 +99,7 @@ void FsMkdir(Fs fs, char *path) {
         strcpy(canonical_path,parent_path);
         strcat(canonical_path,path_name_tail);
         strcpy(safe_canonical_path,canonical_path);
-        Tree NewTree = GetNewTree(safe_canonical_path,path_name_tail,parent_path,REGULAR_FILE,path_addr);
+        Tree NewTree = GetNewTree(safe_canonical_path,path_name_tail,parent_path,DIRECTORY,path_addr);
         //add new tree in alphabetical order inside path_address children if it matches a name at the same level free tree and print error of file exists
         AddTree(path_addr,NewTree,err_msg,path,path_name_tail);
         free(canonical_path);
@@ -155,7 +162,7 @@ void FsMkfile(Fs fs, char *path) {
 
 void FsCd(Fs fs, char *path) {
     // TODO
-    char *err_msg = "cd: ";
+    /*char *err_msg = "cd: ";
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
     Tree tree = fs->Root;
     Queue Q_PATH = ReturnQPath(path);
@@ -172,11 +179,45 @@ void FsCd(Fs fs, char *path) {
     if (path_addr != NULL){
         // make function for find path name tail directory from directories at level of path_addr
         // go path_add->children_head then iteratre through for curr_path matching path_name_tail
-        Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH);
+        Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH,CD_MODE);
         fs->CWD = tail_tree;
     }
     QueueFree(Q_PATH);
-    Q_PATH = NULL;
+    Q_PATH = NULL;*/
+    char *err_msg = "cd: ";
+    char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
+    Tree path_addr = NULL;
+    if (path == NULL){
+        fs->CWD = fs->Root;
+       
+    }
+    else{
+        Tree tree = fs->Root;
+        Queue Q_PATH = ReturnQPath(path);
+        STR_Node path_part = GetQPathHead(Q_PATH);
+        strcpy(path_name_tail,GetPathNameTail(Q_PATH));
+        
+        
+        if(strcmp(path,"/") == 0 || strcmp(path,"") == 0 ){
+            path_addr = fs->Root;
+            //path_addr = s->CWD
+        }
+        
+        else if (path != NULL){
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+        }
+        
+        if (path_addr != NULL){
+            
+            Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH,CD_MODE);
+            fs->CWD = tail_tree;
+        }
+        
+        QueueFree(Q_PATH);
+        Q_PATH = NULL;
+    }
+    free(path_name_tail);
+    path_name_tail = NULL;
 }
 // make function for ls from directories at level of path_addr
 // go path_addr->children_head then iteratre through for curr_path matching path_name_tail then
@@ -185,33 +226,39 @@ void FsCd(Fs fs, char *path) {
 // go path_add->children_head then iteratre through for curr_path matching path_name_tail
 void FsLs(Fs fs, char *path) {
     //TODO
-    char *err_msg = "ls: ";
+    char *err_msg = "ls: cannot access ";
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
-    Tree tree = fs->Root;
-    Queue Q_PATH = ReturnQPath(path);
-    STR_Node path_part = GetQPathHead(Q_PATH);
-    strcpy(path_name_tail,GetPathNameTail(Q_PATH));
     Tree path_addr = NULL;
-    
-    if(strcmp(path,"/") == 0 || strcmp(path,"") ){
-        path_addr = fs->Root;
-    }
-    else if (path == NULL){
+    if (path == NULL){
         path_addr = fs->CWD;
+        PrintLs(path_addr,err_msg,path);
     }
-    else if (path != NULL){
-        path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
-    }
-    
-    if (path_addr != NULL){
+    else{
+        Tree tree = fs->Root;
+        Queue Q_PATH = ReturnQPath(path);
+        STR_Node path_part = GetQPathHead(Q_PATH);
+        strcpy(path_name_tail,GetPathNameTail(Q_PATH));
         
-        Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH);
-        PrintLs(tail_tree,err_msg,path);
+        
+        if(strcmp(path,"/") == 0 || strcmp(path,"") == 0 ){
+            path_addr = fs->Root;
+        }
+        
+        else if (path != NULL){
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+        }
+        
+        if (path_addr != NULL){
+            
+            Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH,LS_MODE);
+            PrintLs(tail_tree,err_msg,path);
+        }
+        
+        QueueFree(Q_PATH);
+        Q_PATH = NULL;
     }
     free(path_name_tail);
     path_name_tail = NULL;
-    QueueFree(Q_PATH);
-    Q_PATH = NULL;
 }
 
 void FsPwd(Fs fs) {
