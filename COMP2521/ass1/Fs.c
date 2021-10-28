@@ -268,6 +268,42 @@ void FsPwd(Fs fs) {
 
 void FsTree(Fs fs, char *path) {
     // TODO
+        char *err_msg = "cd: ";
+    char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
+    int indent = 0; //add 4 each level deep i.e. a tab spacing
+    Tree path_addr = NULL;
+    if (path == NULL){
+        PrintTreeRecur(fs->Root,indent);
+       
+    }
+    else{
+        Tree tree = fs->Root;
+        Queue Q_PATH = ReturnQPath(path);
+        STR_Node path_part = GetQPathHead(Q_PATH);
+        strcpy(path_name_tail,GetPathNameTail(Q_PATH));
+        
+        
+        if(strcmp(path,"/") == 0 || strcmp(path,"") == 0 ){
+            path_addr = fs->Root;
+            //path_addr = s->CWD
+        }
+        
+        else if (path != NULL){
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+        }
+        
+        if (path_addr != NULL){
+            
+            Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH,CD_MODE);
+            
+            PrintTreeRecur(tail_tree,indent);
+        }
+        
+        QueueFree(Q_PATH);
+        Q_PATH = NULL;
+    }
+    free(path_name_tail);
+    path_name_tail = NULL;
 }
 
 void FsPut(Fs fs, char *path, char *content) {

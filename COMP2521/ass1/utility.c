@@ -250,6 +250,25 @@ void PrintLs(Tree tail_tree,char *err_msg,char *path){
 	
 
 }
+void PrintTreeRecur(Tree tree,int indent){
+	if (tree != NULL) {
+		for(int i = 0; i < indent; i ++){
+			printf(" ");
+		}
+		if(strcmp(tree->curr_path,ROOT_PATH) != 0){
+        	printf("%s\n",tree->curr_path + strlen("/"));
+		}
+		else {
+			printf("/\n");
+		}
+		PrintTreeRecur(tree->children_head,indent + 4);
+        PrintTreeRecur(tree->next,indent);
+    }
+        
+        
+	
+
+}
 
 Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path,Queue Q_PATH,ModeType Mode){
 	//some condition when path_addr is  root i.e. head is tail

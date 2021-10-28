@@ -32,6 +32,7 @@ void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_nam
 void prepend(char* s, const char* t);
 void PrintCanonicalPath(Tree tree);
 void PrintLs(Tree tail_tree,char *err_msg,char *path);
+void PrintTreeRecur(Tree tree,int indent);
 void FreeRoot(Tree tree);
 Tree ReturnPathFromCur(Tree Root,char* token,Tree cur,char *path,char *err_msg);
 //input needs to change
