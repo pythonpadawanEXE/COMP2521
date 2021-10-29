@@ -11,18 +11,16 @@
 
 int main(void) {
     Fs fs = FsNew();
-	FsMkfile(fs, "hello.txt");
-	FsMkfile(fs, "world.txt");
-	FsMkdir(fs, "bin");
-	FsMkfile(fs, "bin/ls");
-	FsMkfile(fs, "bin/pwd");
-	FsMkdir(fs, "home");
-	FsMkdir(fs, "home/jas");
-	FsMkfile(fs, "home/jas/todo.txt");
-	FsMkfile(fs, "home/jas/mail.txt");
-	FsTree(fs, "/home/jas");
-	printf("---\n"); // marker to separate output
+	FsCd(fs, "."); // does nothing
+	FsCd(fs, ".."); // does nothing, since the parent of the root directory is itself
+	FsCd(fs, "./.././../."); // also does nothing
+	FsMkdir(fs, "tmp");
+	FsCd(fs, "tmp");
+	FsMkfile(fs, "random.txt");
+	FsMkdir(fs, "../bin");
+	FsMkdir(fs, "./../home");
 	FsTree(fs, NULL);
+
 	// FsLs(fs, "tmp/.././hello.txt");
 	//FsLs(fs, NULL);
 	// printf("---\n"); // marker to separate output

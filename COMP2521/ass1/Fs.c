@@ -76,13 +76,13 @@ void FsMkdir(Fs fs, char *path) {
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
 
     //Q path is a q of strings delemiting the directory path
-    Queue Q_PATH = ReturnQPath(path);
+    Queue Q_PATH = ReturnQPath(path,fs->CWD);
     //assign the tailing directory name to path_name_tail
     strcpy(path_name_tail,GetPathNameTail(Q_PATH));
-    Tree tree = fs->Root;
+    Tree tree = fs->CWD;
     STR_Node path_part = GetQPathHead(Q_PATH);
 
-    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part,MK_MODE);
 
     //make new subtree at path_addr as a directory
     if(path_addr != NULL){
@@ -121,13 +121,13 @@ void FsMkfile(Fs fs, char *path) {
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
 
     //Q path is a q of strings delemiting the directory path
-    Queue Q_PATH = ReturnQPath(path);
+    Queue Q_PATH = ReturnQPath(path,fs->CWD);
     //assign the tailing directory name to path_name_tail
    strcpy(path_name_tail,GetPathNameTail(Q_PATH));
-    Tree tree = fs->Root;
+    Tree tree = fs->CWD;
     STR_Node path_part = GetQPathHead(Q_PATH);
 
-    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+    Tree path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part,MK_MODE);
 
     //make new subtree at path_addr as a directory in children_head where path_addr is parent of children_head
     if(path_addr != NULL){
@@ -192,8 +192,8 @@ void FsCd(Fs fs, char *path) {
        
     }
     else{
-        Tree tree = fs->Root;
-        Queue Q_PATH = ReturnQPath(path);
+        Tree tree = fs->CWD;
+        Queue Q_PATH = ReturnQPath(path,fs->CWD);
         STR_Node path_part = GetQPathHead(Q_PATH);
         strcpy(path_name_tail,GetPathNameTail(Q_PATH));
         
@@ -204,13 +204,15 @@ void FsCd(Fs fs, char *path) {
         }
         
         else if (path != NULL){
-            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part,CD_MODE);
         }
         
         if (path_addr != NULL){
             
             Tree tail_tree = ReturnTreeFomTail(path_addr,path_name_tail,err_msg,path,Q_PATH,CD_MODE);
-            fs->CWD = tail_tree;
+            if(tail_tree != NULL){
+                fs->CWD = tail_tree;
+            }
         }
         
         QueueFree(Q_PATH);
@@ -234,8 +236,8 @@ void FsLs(Fs fs, char *path) {
         PrintLs(path_addr,err_msg,path);
     }
     else{
-        Tree tree = fs->Root;
-        Queue Q_PATH = ReturnQPath(path);
+        Tree tree = fs->CWD;
+        Queue Q_PATH = ReturnQPath(path,fs->CWD);
         STR_Node path_part = GetQPathHead(Q_PATH);
         strcpy(path_name_tail,GetPathNameTail(Q_PATH));
         
@@ -245,7 +247,7 @@ void FsLs(Fs fs, char *path) {
         }
         
         else if (path != NULL){
-            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part,LS_MODE);
         }
         
         if (path_addr != NULL){
@@ -263,12 +265,18 @@ void FsLs(Fs fs, char *path) {
 
 void FsPwd(Fs fs) {
     // TODO
-    PrintCanonicalPath(fs->CWD);
+    char *str = GetCanonicalPath(fs->CWD);
+    if(strcmp(str,ROOT_PATH) == 0){
+        printf("/\n");
+    }
+    else{
+        printf("%s\n",str+strlen(ROOT_PATH));
+    }
 }
 
 void FsTree(Fs fs, char *path) {
     // TODO
-        char *err_msg = "cd: ";
+        char *err_msg = "tree: ";
     char *path_name_tail = malloc((PATH_MAX+1)*sizeof(char));
     int indent = 0; //add 4 each level deep i.e. a tab spacing
     Tree path_addr = NULL;
@@ -278,7 +286,7 @@ void FsTree(Fs fs, char *path) {
     }
     else{
         Tree tree = fs->Root;
-        Queue Q_PATH = ReturnQPath(path);
+        Queue Q_PATH = ReturnQPath(path,fs->CWD);
         STR_Node path_part = GetQPathHead(Q_PATH);
         strcpy(path_name_tail,GetPathNameTail(Q_PATH));
         
@@ -289,7 +297,7 @@ void FsTree(Fs fs, char *path) {
         }
         
         else if (path != NULL){
-            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part);
+            path_addr = ReturnTreeDir(fs->Root,tree,path,err_msg,Q_PATH,path_part,FS_MODE);
         }
         
         if (path_addr != NULL){
