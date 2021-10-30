@@ -36,6 +36,9 @@ void PrintCanonicalPath(Tree tree);
 void PrintLs(Tree tail_tree,char *err_msg,char *path);
 void PrintTreeRecur(Tree tree,int indent);
 void FreeRoot(Tree tree);
+void PutContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail,char *content);
+void CatContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail);
+
 Tree ReturnPathFromCur(Tree Root,char* token,Tree cur,char *path,char *err_msg);
 //input needs to change
 Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type,Tree parent_tree);

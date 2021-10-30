@@ -11,24 +11,13 @@
 
 int main(void) {
     Fs fs = FsNew();
-	FsCd(fs, "."); // does nothing
-	FsCd(fs, ".."); // does nothing, since the parent of the root directory is itself
-	FsCd(fs, "./.././../."); // also does nothing
-	FsMkdir(fs, "tmp");
-	FsCd(fs, "tmp");
-	FsMkfile(fs, "random.txt");
-	FsMkdir(fs, "../bin");
-	FsMkdir(fs, "./../home");
-	FsTree(fs, NULL);
+	
 
-	// FsLs(fs, "tmp/.././hello.txt");
-	//FsLs(fs, NULL);
-	// printf("---\n"); // marker to separate output
-	// FsLs(fs, "/");
-	// printf("---\n");
-	// FsMkfile(fs, "hello.txt");
-	// FsMkdir(fs, "tmp");
-	// FsLs(fs, "/");
+	FsCat(fs, "hello/world");
+	
+
+
+
 	//test alphabetical ordering
     // FsMkdir(fs, "bin");
 	// FsMkdir(fs, "din");
