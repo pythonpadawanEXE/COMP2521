@@ -169,14 +169,14 @@ START OF TREE FUNCTIONS
 
 */
 
-//make new tree with
+//make new tree with defined paths 
 Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType tree_type,Tree parent_tree){
 		Tree NewTree = malloc(sizeof(struct tree));
 		if (NewTree == NULL) {
 				fprintf(stderr, "error: out of memory\n");
 				exit(EXIT_FAILURE);
 		}
-		//These strings should all be mallocced by other functions
+		
 		char *canonical_path_alloc = canonical_path;
 		char *curr_path_alloc = curr_path;
 		char *parent_path_alloc = parent_path;
@@ -197,13 +197,13 @@ Tree GetNewTree(char *canonical_path,char* curr_path,char *parent_path,FileType 
 	
 		NewTree->next = NULL;
 
-		//NOT IN USE
+		
 		NewTree->head = NULL;
 		
 
 		return NewTree;
 }
-
+//add a tree in alphabetical order at path name tail address
 void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_name_tail){
 	Tree tree_parent = path_addr;
 	NewTree->parent = path_addr;
@@ -230,10 +230,11 @@ void AddTree(Tree path_addr,Tree NewTree,char *err_msg,char *path,char *path_nam
 	ChildrenTreeListInsertInOrder(tree_parent,NewTree,err_msg,path);
 	
 }
+//add/replace string within tree content if the tree tail matches the path tail
 void PutContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail,char *content){
 	
 	Tree head = path_addr->children_head;
-	//MAGIC NUMBER 1 to offset prepended slash
+	
 	while (head != NULL){
 		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == REGULAR_FILE){
 			if(head->content != NULL){
@@ -267,11 +268,11 @@ void PutContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail,cha
 	}
 	printf("%s '%s': No such file or directory\n",err_msg,path);
 }
-
+//print string within tree content if the tree tail matches the path tail
 void CatContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail){
 	
 	Tree head = path_addr->children_head;
-	//MAGIC NUMBER 1 to offset prepended slash
+	
 	while (head != NULL){
 		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == REGULAR_FILE){
 			if(head->content != NULL){
@@ -297,17 +298,139 @@ void CatContent(Tree path_addr,char *err_msg,char *path,char *path_name_tail){
 	}
 	printf("%s '%s': No such file or directory\n",err_msg,path);
 }
+//deletes directory if empty
+void DlDir(Tree path_addr,char *err_msg,char *path,char *path_name_tail){
+	
+	Tree head = path_addr->children_head;
+	Tree prev = NULL;
+	
+	while (head != NULL){
+
+		//DELETE IF DIRECTORY MATCHES AND IS EMPTY
+		if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY && head->children_head == NULL){
+			
+			if(prev != NULL){
+				prev->next = head->next;
+				FsFreeTree(head);
+			}
+			else if(prev == NULL){
+				
+				path_addr->children_head = head->next;
+				FsFreeTree(head);
+			}
+			return;
+		}
+		else if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY && head->children_head != NULL){
+			printf("%s '%s': Directory not empty\n",err_msg,path);
+			return;
+		}
+		else if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == REGULAR_FILE){
+			printf("%s '%s': Not a directory\n",err_msg,path);
+			return;
+		}
+		prev = head;
+		head = head->next;
+	}
+	if(strcmp(path_addr->curr_path,path_name_tail) == 0 && path_addr->tree_type == DIRECTORY && path_addr->children_head == NULL){
+		head = path_addr;
+		while (head != NULL){
+
+			//DELETE IF DIRECTORY MATCHES AND IS EMPTY
+			if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY && head->children_head == NULL){
+				
+				if(prev != NULL){
+					prev->next = head->next;
+					FsFreeTree(head);
+				}
+				else if(prev == NULL){
+					
+					path_addr->children_head = head->next;
+					FsFreeTree(head);
+				}
+				return;
+			}
+			else if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY && head->children_head != NULL){
+				printf("%s '%s': Directory not empty\n",err_msg,path);
+				return;
+			}
+			else if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == REGULAR_FILE){
+				printf("%s '%s': Not a directory\n",err_msg,path);
+				return;
+			}
+			prev = head;
+			head = head->next;
+		}		
+		
+	}
+	else if(strcmp(path_name_tail,"/.") == 0){
+		printf("%s '%s': Invalid Argument\n",err_msg,path);
+		return;
+	}
+	
+	else if(strcmp(path_name_tail,"/..") == 0){
+		printf("%s '%s': Directory not empty\n",err_msg,path);
+		return;
+	}
+	printf("%s '%s': No such file or directory\n",err_msg,path);
+}
+//recusrively delete if activated otherwise just delete
+void Dl(Tree path_addr,char *err_msg,char *path,char *path_name_tail,bool recursive){
+	
+	Tree head = path_addr->children_head;
+	Tree prev = NULL;
+	
+	while (head != NULL){
+
+		//DELETE IF DIRECTORY MATCHES AND IS EMPTY
+		if(strcmp(head->curr_path,path_name_tail) == 0 && recursive == true){
+			
+			if(prev != NULL){
+				prev->next = head->next;
+				FsFreeTree(head->children_head);
+				
+				FreeTree(head);
+			}
+			else if(prev == NULL){
+				
+				path_addr->children_head = head->next;
+				FsFreeTree(head->children_head);
+				
+				FreeTree(head);
+				
+			}
+			return;
+		}
+		else if(strcmp(head->curr_path,path_name_tail) == 0 && head->tree_type == DIRECTORY && recursive == false){
+			printf("%s '%s': Is a directory\n",err_msg,path);
+			return;
+		}
+		prev = head;
+		head = head->next;
+	}
+	
+	if(strcmp(path_name_tail,"/.") == 0){
+		printf("%s '%s': Invalid Argument\n",err_msg,path);
+		return;
+	}
+	
+	else if(strcmp(path_name_tail,"/..") == 0){
+		printf("%s '%s': Directory not empty\n",err_msg,path);
+		return;
+	}
+	printf("%s '%s': No such file or directory\n",err_msg,path);
+}
 
 
+//Prints list of trees while head is not null
 void PrintLs(Tree tail_tree,char *err_msg,char *path){
-	//WHAT if tail_tree is NULL
+	
 	if(tail_tree  == NULL){
-		//printf("%s '%s': No such file or directory\n",err_msg,path);
+		
 		return;
 	}
 	if(tail_tree->tree_type == REGULAR_FILE){
 		printf("%s\n",path);
-		//printf("%s '%s': Not a directory\n",err_msg,path);
+		
 		return;
 	}
 	
@@ -320,6 +443,7 @@ void PrintLs(Tree tail_tree,char *err_msg,char *path){
 	
 
 }
+//prints the tree recursively
 void PrintTreeRecur(Tree tree,int indent){
 	if (tree != NULL) {
 		for(int i = 0; i < indent; i ++){
@@ -334,12 +458,30 @@ void PrintTreeRecur(Tree tree,int indent){
 		PrintTreeRecur(tree->children_head,indent + 4);
         PrintTreeRecur(tree->next,indent);
     }
-        
-        
-	
-
 }
 
+
+// void PrintTreeRecur(Tree tree,int indent){
+// 	if (tree != NULL) {
+// 		for(int i = 0; i < indent; i ++){
+// 			printf(" ");
+// 		}
+// 		if(strcmp(tree->curr_path,ROOT_PATH) != 0){
+//         	printf("%s\n",tree->curr_path + strlen("/"));
+// 		}
+// 		else {
+// 			printf("/\n");
+// 		}
+// 		PrintTreeRecur(tree->children_head,indent + 4);
+//         PrintTreeRecur(tree->next,indent);
+//     }
+// }
+
+
+
+
+
+// return tree for path_name tail using tree from return treedir  i.e. use tree address from one level above the tail to find the tail
 Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *path,Queue Q_PATH,ModeType Mode){
 	//some condition when path_addr is  root i.e. head is tail
 	if(Q_PATH->size == 1){
@@ -367,7 +509,6 @@ Tree ReturnTreeFomTail(Tree path_addr,char *path_name_tail,char *err_msg,char *p
 				printf("%s '%s': Not a directory\n",err_msg,path);
 				return NULL;
 			}
-			//printf("%s\n",head->canonical_path + strlen("/(Root)/"));
 			printf("%s\n",path);
 			return NULL;
 		}
@@ -389,14 +530,35 @@ char *GetCanonicalPath(Tree CWD){
 Tree GetRootChildrenHead(Tree tree){
 	return tree->children_head;
 }
+void  FreeTree(Tree tree){
+	if(tree->curr_path != NULL){
+		free(tree->curr_path);
+		tree->curr_path = NULL;
+	}
+	if(tree->canonical_path != NULL){
+		free(tree->canonical_path);
+		tree->canonical_path = NULL;
+	}
+	if(tree->content != NULL){
+		free(tree->content);
+		tree->content = NULL;
+	}
+	free(tree);
+}
 
 void FreeRoot(Tree tree){
-	free(tree->curr_path);
-	tree->curr_path = NULL;
-	free(tree->parent_path);
-	tree->parent_path = NULL;
-	free(tree->canonical_path);
-	tree->canonical_path = NULL;
+	if(tree->curr_path != NULL){
+		free(tree->curr_path);
+		tree->curr_path = NULL;
+	}
+	if(tree->parent_path != NULL){
+		free(tree->parent_path);
+		tree->parent_path = NULL;
+	}
+	if(tree->canonical_path != NULL){
+		free(tree->canonical_path);
+		tree->canonical_path = NULL;
+	}
 	if(tree->content != NULL){
 		free(tree->content);
 		tree->content = NULL;
@@ -414,7 +576,6 @@ void FsFreeTree(Tree tree) {
 			tree->curr_path = NULL;
         }
 		if (tree->parent_path != NULL) {
-            //free(tree->parent_path);
 			tree->parent_path = NULL;
         }
 		if (tree->canonical_path != NULL) {
@@ -431,7 +592,7 @@ void FsFreeTree(Tree tree) {
 	// return;
 }
 
-
+//Returns a tree to the directory one level above the path name tail
 Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,STR_Node path_part,ModeType Mode){
 	if(Q_PATH->size == 1){
 		return NULL;
@@ -439,16 +600,16 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 	if(Q_PATH->size == 2){
 		return tree;
 	}
-	// is this correct?
+	
 	if(strcmp("/",path) == 0 || strcmp("",path) ==0  ){
 		return  Root;
 	}
-	//printf("start:%s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
+	
 	while(path_part->next != NULL && tree != NULL){
-		//printf("%s  %s\n",tree->curr_path,path_part->item);
+		
 		//IF MATCH BUT NOT A DIRECTORY
 		if(strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == REGULAR_FILE){
-			//printf("IF MATCH BUT NOT A DIRECTORY start: %s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
+			
 			printf("%s '%s': Not a directory\n",err_msg,path);				
 			return NULL;
 		}
@@ -471,19 +632,13 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 			if(tree == NULL && path_part->next == NULL){
 				return Root;
 			}
-			// tree = tree->parent;
-			// if(tree == NULL && path_part->next == NULL){
-			// 	return Root;
-			// }
+			
 			
 		}
 		
 		//IF MATCH AND IS DIRECTORY
 		else if(strcmp(tree->curr_path,path_part->item) == 0 && tree->tree_type == DIRECTORY){
-			//printf("//IF MATCH AND IS DIRECTORY start: %s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
-			// else if(tree->children_head != NULL){
-					
-			// }
+			
 			
 			if(strcmp(path_part->next->item,"/..")==0){
 				path_part = path_part->next;
@@ -504,13 +659,13 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 		}
 		//IF  NOT MATCH AND NOT EXISTS NEXT TREE 
 		else if(strcmp(tree->curr_path,path_part->item) != 0 && tree->next == NULL){
-			//printf("//IF  NOT MATCH AND NOT EXISTS NEXT TREE  start:%s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
+			
 			printf("%s '%s': No such file or directory\n",err_msg,path);
 			return NULL;
 		}
 		//IF NOT MATCH AND  EXISTS NEXT TREE   
 		else if(strcmp(tree->curr_path,path_part->item) != 0 && tree->next != NULL){
-			//printf("//IF NOT MATCH AND  EXISTS NEXT TREE start: %s %s %s  %s\n",tree->canonical_path,tree->parent_path, tree->curr_path,path_part->item);
+			
 			tree = tree->next;
 		}
 		else{
@@ -518,7 +673,6 @@ Tree ReturnTreeDir(Tree Root,Tree tree, char *path,char *err_msg,Queue Q_PATH,ST
 			return NULL;
 		}
 	}
-	//maybe put this in put content
 	if(tree == NULL){
 		printf("%s '%s': No such file or directory\n",err_msg,path);
 	}
@@ -550,13 +704,13 @@ void prepend(char* s, const char* t){
     memcpy(s, t, len);
 }
 
+//Create a Queue containing strings in each Queue Node for the parts of a file path
 Queue ReturnQPath(char *path,Tree CWD){
 		Queue q = QueueNew();
 		QueueEnqueue(q,CWD->curr_path);	
 		const char s[2] = "/";
 		char *token;
-        //printf("path: %s\n",path);
-        //printf("delimiter: %s\n",s);
+        
 		//separate path via / delimiter
         char *tmp_path = malloc((PATH_MAX+1)*sizeof(char));
 		char *tmp_dir = malloc((PATH_MAX+1)*sizeof(char));
@@ -565,7 +719,6 @@ Queue ReturnQPath(char *path,Tree CWD){
 				exit(EXIT_FAILURE);
 		}
         strcpy(tmp_path,path);
-		//char tmp_path[MAX_PATH+1];
 		strcpy(tmp_path,path);
 		token = strtok(tmp_path, s);
 		
@@ -578,7 +731,6 @@ Queue ReturnQPath(char *path,Tree CWD){
 				QueueEnqueue(q,tmp_dir);
 				
             }
-			//printf( " %s\n", token );
 			token = strtok(NULL, s);
 		}
 		free(tmp_dir);

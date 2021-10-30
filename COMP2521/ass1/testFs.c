@@ -12,8 +12,23 @@
 int main(void) {
     Fs fs = FsNew();
 	
-
-	FsCat(fs, "hello/world");
+	FsMkfile(fs, "hello.txt");
+	FsMkfile(fs, "world.txt");
+	FsMkdir(fs, "bin");
+	FsMkfile(fs, "bin/ls");
+	FsMkfile(fs, "bin/pwd");
+	FsMkdir(fs, "home");
+	FsMkdir(fs, "home/jas");
+	FsMkfile(fs, "home/jas/todo.txt");
+	FsMkfile(fs, "home/jas/mail.txt");
+	FsTree(fs, "/home/jas");
+	printf("---\n"); // marker to separate output
+	FsTree(fs, NULL);
+	// printf("---\n"); // marker to separate output
+	// FsDl(fs, true, "hello");
+	// FsTree(fs, NULL);
+	
+	
 	
 
 
