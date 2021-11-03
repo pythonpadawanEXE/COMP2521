@@ -22,9 +22,165 @@
  * array, and returns the number of power lines stored. Assumes that the
  * powerLines array is large enough to store all required power lines.
  */
+
+Edge ReturnEdgePlanner(Vertex v,Vertex w,double weight){
+    Edge ret = {.v = v,.w = w,.weight = weight};
+    return ret;
+}
+// Edge FindEdge(PQ pq,double *used_vertices){
+//     //navigate PQ and check if vertices are not being used in used_vertices
+//     //used vertices will have a value equal to 1 unused equal to 0
+   
+//     while (PQIsEmpty(pq) == false){// && invalidedge == true){
+//         Edge e = PQExtract(pq);
+//         //check if Edge vertices are used
+//         if(e.weight > 0 && e.v != e.w){
+//             if(used_vertices[e.v] == 1 && used_vertices[e.w] == 0 ){
+//                 used_vertices[e.w] = 1;
+//                 return e;
+//             }
+//             else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 1 ){
+//                 used_vertices[e.v] = 1;
+//                 return e;
+//             }
+//             else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 0 ){
+//                 used_vertices[e.v] = 1;
+//                 used_vertices[e.w] = 1;
+//                 return e;
+//             }
+//         }
+//     }
+    
+//     return ReturnEdge(-1,-1,-1);
+    
+// }
+
+
+
+// void PopulateUnusedE(PQ pq,Graph g,int numCities){
+//     int nV = numCities + 1;
+//     Edge tmp;
+//     for(int i = 0;i < nV; i++){
+//         for(int j =0; j < nV ;j++){
+//             tmp = ReturnEdge(i,j,g->edges[i][j]);
+//             PQInsert(pq,tmp);
+//         }
+//     }
+// }
+
+// Graph GraphMSTPlanner(Graph g,int numCities) {
+//     // TODO: Complete this function
+
+//     /*
+//     PrimMST(G):
+//     |  Input  graph G with n nodes
+//     |  Output a minimum spanning tree of G
+//     |
+//     |  MST=empty graph
+//     |  usedV={0}
+//     |  unusedE=edges(g)
+//     |  while |usedV| < n do
+//     |  |  find e=(s,t,w) in unusedE such that {
+//     |  |     s in usedV and t not in usedV 
+//     |  |       and w is min weight of all such edges
+//     |  |  }
+//     |  |  MST = MST U {e}
+//     |  |  usedV = usedV U {t}
+//     |  |  unusedE = unusedE \ {e}
+//     |  end while
+//     |  return MST
+//     */
+
+//     //use priority queue
+//     int nV = numCities+1;
+//     Graph MST = GraphNew(nV); 
+//     double *used_vertices = calloc(nV , sizeof(double));
+//     if (used_vertices == NULL) {
+//             fprintf(stderr, "error: out of memory\n");
+//             exit(EXIT_FAILURE);
+//     }
+//     PQ pq =  PQNew(); //unused E
+//     PopulateUnusedE(pq,g);
+//     Edge E;
+//     int size_usedV = 0;
+//     while(PQIsEmpty(pq) == false){
+//         E = FindEdge(pq,used_vertices);
+//         if( E.weight != -1){
+//             GraphInsertEdge(MST,E);
+//             size_usedV++; 
+//         }
+//     }
+
+//     free(used_vertices);
+//     PQFree(pq);
+//     if(size_usedV != nV -1){
+//         return NULL;
+//     }
+//     return MST;
+    
+// }
+int CalculateWeight(int i,int j,Place cities[],Place powerPlant,int numCities){
+    //int nV = numCities + 1;
+    int x1;
+    int x2;
+    int y1;
+    int y2;
+
+    if(i < numCities && j == numCities){
+        x1 = cities[i].x;
+        y1 = cities[i].y;
+        x2 = powerPlant.x;
+        y2 = powerPlant.y;
+    }
+    else if (i < numCities && j < numCities){
+        x1 = cities[i].x;
+        y1 = cities[i].y;
+        x2 = cities[j].x;
+        y2 = cities[j].y;
+    }
+    return sqrt(pow((x2-x1),2) + pow((y2-y1),2));
+}
 int planGrid1(Place cities[], int numCities, Place powerPlant,
               PowerLine powerLines[]) {
     // TODO: Complete this function
+    //place is a vertex
+    //powerline is an edge
+    //make graph with numCities and place power plant with everything being an edge
+    
+    //int nV = numCities + 1;
+    Graph AllEdges = GraphNew(numCities+1); 
+    Edge E;
+    PQ pq = PQNew();
+    //vertex in Edge will be index in cities last vertex is powerplant
+    for(int i = 0;i < numCities ; i++){
+        for(int j = 0; j< numCities;j++){
+            //prevent duplicates in two ways either being self loops or same relationship in other direction as undirected
+            if(i != j && i < j){
+                E = ReturnEdgePlanner(i,j,CalculateWeight(i,j,cities,powerPlant,numCities));
+                GraphInsertEdge(AllEdges,E);
+                PQInsert(pq,E);
+            }
+        }
+        E = ReturnEdgePlanner(i,numCities,CalculateWeight(i,numCities,cities,powerPlant,numCities));
+        GraphInsertEdge(AllEdges,E);
+        PQInsert(pq,E);
+
+    }
+    PQShow(pq);
+    GraphShow(AllEdges);
+
+    Graph MST = GraphMST(AllEdges);
+    if(MST == NULL){
+        printf("bigsad\n");
+    }
+    else{
+    GraphShow(MST);
+    GraphFree(MST);
+    }
+    //go through MST and turninto powerlines??
+
+    
+    GraphFree(AllEdges);
     return 0;
 }
 

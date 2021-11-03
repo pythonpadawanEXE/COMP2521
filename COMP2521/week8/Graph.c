@@ -145,34 +145,111 @@ static bool doHasCycle(Graph g, Vertex v, Vertex prev, bool *visited) {
 
 ////////////////////////////////////////////////////////////////////////
 // Your task
+Edge ReturnEdge(Vertex v,Vertex w,double weight){
+    Edge ret = {.v = v,.w = w,.weight = weight};
+    return ret;
+}
+Edge FindEdge(Graph g,PQ pq,double *used_vertices){
+    //navigate PQ and check if vertices are not being used in used_vertices
+    //used vertices will have a value equal to 1 unused equal to 0
+   
+   // && invalidedge == true){
+    Edge e = PQExtract(pq);
+    //check if Edge vertices are used
+    if(e.weight == 313.000000){
+        printf("test\n");
+    }
+    if(e.weight > 0 && e.v != e.w && GraphIsAdjacent(g, e.v,e.w)){
+        if(used_vertices[e.v] == 1 && used_vertices[e.w] == 0 ){
+            used_vertices[e.w] = 1;
+            return e;
+        }
+        else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 1 ){
+            used_vertices[e.v] = 1;
+            return e;
+        }
+        else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 0 ){
+            used_vertices[e.v] = 1;
+            used_vertices[e.w] = 1;
+            return e;
+        }
+    }
+    
+    
+    return ReturnEdge(-1,-1,-1);
+    
+}
+
+
+
+void PopulateUnusedE(PQ pq,Graph g){
+    Edge tmp;
+    for(int i = 0;i < g->nV; i++){
+        for(int j =0; j <g->nV ;j++){
+            if(i > j && i != j && g->edges[i][j] > 0){
+                tmp = ReturnEdge(i,j,g->edges[i][j]);
+                PQInsert(pq,tmp);
+            }
+        }
+    }
+}
 
 Graph GraphMST(Graph g) {
     // TODO: Complete this function
 
-/*
-KruskalMST(G):
-|  Input  graph G with n nodes
-|  Output a minimum spanning tree of G
-|
-|  MST=empty graph
-|  sort edges(G) by weight
-|  for each e in sortedEdgeList do
-|  |  MST = MST U {e}  // add edge
-|  |  if MST has a cyle then
-|  |     MST = MST \ {e}  // drop edge 
-|  |  end if
-|  |  if MST has n-1 edges then
-|  |     return MST
-|  |  end if
-|  end for
-*/
-Graph MST;
-//use priority queue
+    /*
+    PrimMST(G):
+    |  Input  graph G with n nodes
+    |  Output a minimum spanning tree of G
+    |
+    |  MST=empty graph
+    |  usedV={0}
+    |  unusedE=edges(g)
+    |  while |usedV| < n do
+    |  |  find e=(s,t,w) in unusedE such that {
+    |  |     s in usedV and t not in usedV 
+    |  |       and w is min weight of all such edges
+    |  |  }
+    |  |  MST = MST U {e}
+    |  |  usedV = usedV U {t}
+    |  |  unusedE = unusedE \ {e}
+    |  end while
+    |  return MST
+    */
 
-
-
-    return NULL;
+    //use priority queue
+    int nV = g->nV;
+    Graph MST = GraphNew(nV); 
+    double *used_vertices = calloc(nV , sizeof(double));
+    if (used_vertices == NULL) {
+            fprintf(stderr, "error: out of memory\n");
+            exit(EXIT_FAILURE);
+    }
+    PQ pq =  PQNew(); //unused E
+    PopulateUnusedE(pq,g);
+    PQShow(pq);
+    Edge E;
+    int size_usedV = 0;
+    while(PQIsEmpty(pq) == false){
+        E = FindEdge(g,pq,used_vertices);
+        if( E.weight != -1){
+            GraphInsertEdge(MST,E);
+            size_usedV++; 
+        }
+    }
+    GraphShow(MST);
+    free(used_vertices);
+    PQFree(pq);
+    //printf("%d %d\n",size_usedV,nV-1);
+    if(MST->nV-1 != MST->nE){
+        return NULL;
+    }
+    return MST;
+    
 }
+
+
+
 
 ////////////////////////////////////////////////////////////////////////
 

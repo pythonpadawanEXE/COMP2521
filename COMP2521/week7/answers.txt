@@ -7,15 +7,20 @@ NOTE:
   solveBfs
 ============
 
-- Worst case time complexity: O(...)
+- Worst case time complexity: O(V + E) i.e. O(n)  as number of cells always bigger than number of edges and number of vertices due to walls
 
-- Explanation: ...
+- Explanation: 
+//Goes through Edges so E time complexity i.e. no of edges
+    //each time this is recursively called the call is E-1 as the for loop iterates
+    //initalising initial matrices takes V time so total time complexity is O(V + E )
 
 ============
   solveDfs
 ============
 
-- Worst case time complexity: O(...)
+- Worst case time complexity: O(V + E ) i.e. O(n) as number of cells always bigger than number of edges and number of vertices due to walls
 
-- Explanation: ...
+- Explanation: 
+//While Q not empty Goes through Edges every time only once so E time complexity i.e. no of edges
+//initalising initial matrices takes V time so total time complexity is O(V +E )
 

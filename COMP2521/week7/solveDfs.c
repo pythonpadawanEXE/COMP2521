@@ -79,6 +79,10 @@ bool dfsPathCheck(Maze m,Cell V,Cell **predecessormatrix,bool **boolmatrix){//,i
     MazeVisit(m,V);
     boolmatrix[V.row][V.col] = VISITED;
     Cell W;
+
+    //Goes through Edges so E time complexity i.e. no of edges
+    //each time this is recursively called the call is E-1 as the for loop iterates
+    //initalising initial matrices takes V time so total time complexity is O(V +E )
     for(int row = 0;row < MazeHeight(m);row++){
             for(int col = 0;col < MazeWidth(m); col++){
                 

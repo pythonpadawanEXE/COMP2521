@@ -1,3 +1,4 @@
+
 // Implementation of the FriendBook ADT
 
 #include <assert.h>
@@ -242,7 +243,7 @@ void FbFriendRecs1(Fb fb, char *name) {
     //max number of mutuals is number of people minus two
     //iterates through twice and prints naem if they are mutuals with more than zero connections
     for(int i = fb->numPeople -2; i >= 0; i--){
-        for(int j = fb->numPeople -2; j >=0; j--){
+        for(int j = fb->numPeople; j >=0; j--){
             if(friends_friends_num_mutuals[j] == i && friends_friends_num_mutuals[j] > 0 && j != id1){
                 printf("\t%-20s%4d mutual friends\n",fb->names[j],friends_friends_num_mutuals[j]);
             }
