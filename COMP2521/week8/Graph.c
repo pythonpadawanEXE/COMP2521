@@ -149,34 +149,49 @@ Edge ReturnEdge(Vertex v,Vertex w,double weight){
     Edge ret = {.v = v,.w = w,.weight = weight};
     return ret;
 }
-Edge FindEdge(Graph g,PQ pq,double *used_vertices){
+
+Edge FindEdge(Graph MST,PQ pq,double *used_vertices){
     //navigate PQ and check if vertices are not being used in used_vertices
     //used vertices will have a value equal to 1 unused equal to 0
+   //use tmp priority queue to store edges
    
-   // && invalidedge == true){
-    Edge e = PQExtract(pq);
-    //check if Edge vertices are used
-    if(e.weight == 313.000000){
-        printf("test\n");
-    }
-    if(e.weight > 0 && e.v != e.w && GraphIsAdjacent(g, e.v,e.w)){
-        if(used_vertices[e.v] == 1 && used_vertices[e.w] == 0 ){
-            used_vertices[e.w] = 1;
-            return e;
-        }
-        else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 1 ){
-            used_vertices[e.v] = 1;
-            return e;
-        }
-        else if(used_vertices[e.v] == 0 && used_vertices[e.w] == 0 ){
-            used_vertices[e.v] = 1;
-            used_vertices[e.w] = 1;
-            return e;
-        }
-    }
+    PQ tmp = PQNew();
+  
+    Edge e;
+    //to create first edge
+    // if(MST->nE == 0){
+    //     e = PQExtract(pq);
+    //     return e;
+    // }
+    //e is not guaranteed to be adjacent FIX
+
     
-    
-    return ReturnEdge(-1,-1,-1);
+    bool found_edge = false;
+    while(found_edge == false){
+        if(PQIsEmpty(pq) == true){
+            e = ReturnEdge(-1,-1,-1);
+            break;
+        }
+        e = PQExtract(pq);
+        //!= serves as XOR
+        
+        if(e.weight > 0 && e.v != e.w && ((used_vertices[e.v] == 0) != (used_vertices[e.w] == 0) )){
+            used_vertices[e.w] = 1;
+            used_vertices[e.v] = 1;
+            found_edge = true;   
+        }
+        else{
+            PQInsert(tmp,e);
+        }
+    }
+    //put unused edges back into tmp
+    Edge tmp_e;
+    while(!PQIsEmpty(tmp)){
+                tmp_e = PQExtract(tmp);
+                PQInsert(pq,tmp_e);
+    }
+    PQFree(tmp);
+    return e;
     
 }
 
@@ -227,17 +242,28 @@ Graph GraphMST(Graph g) {
     }
     PQ pq =  PQNew(); //unused E
     PopulateUnusedE(pq,g);
-    PQShow(pq);
+    //PQShow(pq);
+    // while(PQIsEmpty(pq) == false){
+    //     Edge tmp = PQExtract(pq);
+    //     printf("%d %d %lf\n",tmp.w,tmp.v,tmp.weight);
+    // }
+    // return NULL;
     Edge E;
     int size_usedV = 0;
-    while(PQIsEmpty(pq) == false){
+    //initlaise used_vertices to allow for XOR and start at first position
+    used_vertices[0] = 1;
+    while(size_usedV < nV){
         E = FindEdge(g,pq,used_vertices);
+        //printf("E:%d %d %lf\n",E.w,E.v,E.weight);
         if( E.weight != -1){
             GraphInsertEdge(MST,E);
             size_usedV++; 
         }
+        else{
+            break;
+        }
     }
-    GraphShow(MST);
+    //GraphShow(MST);
     free(used_vertices);
     PQFree(pq);
     //printf("%d %d\n",size_usedV,nV-1);

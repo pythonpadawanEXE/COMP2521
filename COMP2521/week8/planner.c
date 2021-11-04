@@ -7,7 +7,14 @@
 #include "Graph.h"
 #include "Place.h"
 #include "PQ.h"
-
+typedef struct graph *Grid;
+typedef Graph Grid;
+struct graph {
+    int nV;         // #vertices
+    int nE;         // #edges
+    double **edges; // adjacency matrix storing positive weights
+                    // 0 if nodes not adjacent
+};
 ////////////////////////////////////////////////////////////////////////
 // Your task
 
@@ -119,6 +126,18 @@ Edge ReturnEdgePlanner(Vertex v,Vertex w,double weight){
 //     return MST;
     
 // }
+Place ReturnPlace(int j,int nV,Place cities[],Place powerPlant){
+    if(j == nV-1){
+        return powerPlant;
+    }
+    return cities[j];
+}
+
+PowerLine ReturnPowerLine(Place p1,Place p2){
+    PowerLine ret = {.p1=p1 ,.p2=p2};
+    return ret;
+}
+
 int CalculateWeight(int i,int j,Place cities[],Place powerPlant,int numCities){
     //int nV = numCities + 1;
     int x1;
@@ -142,14 +161,20 @@ int CalculateWeight(int i,int j,Place cities[],Place powerPlant,int numCities){
 }
 int planGrid1(Place cities[], int numCities, Place powerPlant,
               PowerLine powerLines[]) {
-    // TODO: Complete this function
+    
     //place is a vertex
     //powerline is an edge
     //make graph with numCities and place power plant with everything being an edge
     
-    //int nV = numCities + 1;
-    Graph AllEdges = GraphNew(numCities+1); 
+
+    //define total vertices
+    int nV = numCities + 1;
+    
+    //make graph with everything connected then find  MST from this
+    Graph AllEdges = GraphNew(nV); 
     Edge E;
+    //make priority queue and add all the possible cities connections then at line 186-188 add the power plant connection to those city connections
+
     PQ pq = PQNew();
     //vertex in Edge will be index in cities last vertex is powerplant
     for(int i = 0;i < numCities ; i++){
@@ -166,22 +191,27 @@ int planGrid1(Place cities[], int numCities, Place powerPlant,
         PQInsert(pq,E);
 
     }
-    PQShow(pq);
-    GraphShow(AllEdges);
-
-    Graph MST = GraphMST(AllEdges);
-    if(MST == NULL){
-        printf("bigsad\n");
-    }
-    else{
-    GraphShow(MST);
-    GraphFree(MST);
-    }
-    //go through MST and turninto powerlines??
-
     
+    int count = 0;
+    //Get the MST from graph
+    Graph MST = GraphMST(AllEdges);
+    //HACK THE ADT thru typedef
+
+    //go through all the edges in the edges array and add to the powerline make sure to only add edge once by doing i>j
+    for(int i = 0; i < nV ; i++){
+        for(int j = 0; j < nV;j++){
+            if (MST->edges[i][j] > 0 && i < j){
+                powerLines[count] = ReturnPowerLine(ReturnPlace(i,nV,cities,powerPlant),ReturnPlace(j,nV,cities,powerPlant));
+                count++;
+            }
+        }   
+    }
+    int n_lines = MST->nE;
+    
+    PQFree(pq);
+    GraphFree(MST);
     GraphFree(AllEdges);
-    return 0;
+    return n_lines;
 }
 
 ////////////////////////////////////////////////////////////////////////

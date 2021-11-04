@@ -1,0 +1,35 @@
+Number of vertices: 8
+Number of edges: 7
+Edge 0 - 6: 174.000000
+Edge 0 - 7: 62.000000
+Edge 1 - 2: 166.000000
+Edge 1 - 7: 117.000000
+Edge 2 - 3: 313.000000
+Edge 3 - 4: 275.000000
+Edge 3 - 5: 462.000000
+<html>
+<head>
+  <title>Electrical Grid Plan</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <h1>Electrical Grid Plan</h1>
+  <p>Power plants are coloured yellow.</p>
+  <div id="cy"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.19.0/cytoscape.min.js" integrity="sha512-TOWs340KHbJjY/a2SCtsUcXYBg7/xPX72NKpJ3VITogkHJTy2yMyoJE0pxJjumMGHCg46ud89KO5q1Toe3Aeaw==" crossorigin="anonymous"></script>
+  <script>
+    var elems = [
+      {data: {id: "Sydney"}, position: {x: 870, y: -204}},
+      {data: {id: "Melbourne"}, position: {x: 727, y: -94}},
+      {data: {id: "Adelaide"}, position: {x: 581, y: -174}},
+      {data: {id: "Alice Springs"}, position: {x: 474, y: -469}},
+      {data: {id: "Darwin"}, position: {x: 406, y: -736}},
+      {data: {id: "Perth"}, position: {x: 65, y: -254}},
+      {data: {id: "Brisbane"}, position: {x: 910, y: -374}},
+      {data: {id: "Canberra"}, position: {x: 821, y: -165}, classes: ['power-plant']},
+      {data: {id: 'e1', source: "Sydney", target: "Brisbane"}},
+    ];
+  </script>
+  <script src="./visualiser.js"></script>
+</body>
+</html>
