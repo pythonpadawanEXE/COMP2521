@@ -6,14 +6,22 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Graph.h"
 #include "PQ.h"
+#include "Queue.h"
+#include "readData.h"
+
 
 struct graph {
     int nV;         // #vertices
     int nE;         // #edges
     double **edges; // adjacency matrix storing positive weights
+    char **vertice_names;
+    double *pageRanks;
+    int *outDegree; //for each URL how many links that URL has where the index of numLinks and vertice_names match
+    int *inDegree; //for each URL how many links are pointing to it i.e. incoming link counter
                     // 0 if nodes not adjacent
 };
 
@@ -33,6 +41,21 @@ Graph GraphNew(int nV) {
 
     g->nV = nV;
     g->nE = 0;
+    //ADD vertice names
+    g->vertice_names = malloc(nV * sizeof(char *));
+    assert(g->vertice_names != NULL);
+
+    //add number outgoing links for each vertex
+    g->outDegree = calloc(nV,sizeof(int));
+    assert(g->outDegree != NULL);
+
+    //add number incoming links for each vertex
+    g->inDegree = calloc(nV,sizeof(int));
+    assert(g->inDegree != NULL);
+
+    //add page Ranks
+    g->pageRanks = calloc(nV,sizeof(double));
+    assert(g->pageRanks != NULL);
 
     g->edges = malloc(nV * sizeof(double *));
     if (g->edges == NULL) {
@@ -40,6 +63,8 @@ Graph GraphNew(int nV) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < nV; i++) {
+        //initalise to NULL to help find segfaults
+        g->vertice_names[i] = NULL;
         g->edges[i] = calloc(nV, sizeof(double));
         if (g->edges[i] == NULL) {
             fprintf(stderr, "error: out of memory\n");
@@ -53,8 +78,14 @@ Graph GraphNew(int nV) {
 void GraphFree(Graph g) {
     for (int i = 0; i < g->nV; i++) {
         free(g->edges[i]);
+        //free vertice names
+        free(g->vertice_names[i]);
     }
+    free(g->inDegree);
+    free(g->pageRanks);
+    free(g->outDegree);
     free(g->edges);
+    free(g->vertice_names);
     free(g);
 }
 
@@ -143,9 +174,154 @@ static bool doHasCycle(Graph g, Vertex v, Vertex prev, bool *visited) {
     }
     return false;
 }
-
 ////////////////////////////////////////////////////////////////////////
-// Your task
+// Ass 2 new functions
+//find the index in the graph rep for the given URL string
+int GetURLNameIdx(Graph g,char * URL){
+    for(int i;i < g->nV;i++){
+        if(strcmp(g->vertice_names[i],URL) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+//adds vertex names to vertice_names which can be used to craw url.txt files later
+void GraphAddVertexNames(Graph g,Queue q){
+
+    //goes through queue and copy queue items to graph vertice names
+    for(int i = 0;i<g->nV;i++){
+        g->vertice_names[i] = malloc(MAX_URL_LEN * sizeof(char));
+        char *q_head_str = QueueDequeue(q);
+
+        strcpy(g->vertice_names[i],q_head_str);
+        
+        free(q_head_str);
+
+    }
+    QueueFree(q);
+}
+
+//populates the graph edges by crawling the urls in the vertice_names char array once that has been made
+void GraphPopulateEdges(Graph g){
+    Queue outgoing_links;
+    char *filename = malloc(sizeof(char )* (MAX_URL_LEN + strlen(".txt")));
+    char suffix[] = ".txt";
+    char *q_head_str = NULL;
+    int num_links = -1;
+    int idx;
+    Edge e;
+    e.v = -1;
+    e.w = -1;
+    e.weight = 1;
+    for(int i = 0;i < g->nV;i++){
+        //copyfile contents to filename
+        strcpy(filename,g->vertice_names[i]);
+        //append .txt to filename
+        strcat(filename,suffix);
+        //get list of out going links from filename
+        outgoing_links = get_urls(filename,"#start Section-1","#end Section-1");
+        
+        num_links= QueueSize(outgoing_links);
+        //O_u is num_links for each URL
+        g->outDegree[i] = num_links;
+        //v is the from position i.e. outgoing
+        e.v = i;
+        while(!QueueIsEmpty(outgoing_links)){
+            //dequeue to get string
+            q_head_str = QueueDequeue(outgoing_links);
+            //find index of link name (separate function)
+            idx = GetURLNameIdx(g,q_head_str);
+            //e.w is the to position or the incoming
+            e.w = idx;
+            g->inDegree[idx]++;
+            GraphInsertEdge(g,e);
+            free(q_head_str);
+        }
+        QueueFree(outgoing_links);
+    }
+    free(filename);
+
+}
+/*
+W_out(v,u)
+O_u is the degree of outlinks from vertex u
+the denominator is the sum of the outlinks from each O_p
+where p is in (an element of) v which means
+from vertex v to vertex p there is a link i.e. edges[v][p] > 0
+*/
+double wOut(Graph g,int v,int u){
+    int oU= g->outDegree[u];
+    int sumP = 0;
+    for(int p = 0;p < g->nV;p++){
+        if(g->edges[v][p] > 0){
+            if(g->outDegree[p] > 0){
+                sumP = sumP + g->outDegree[p];
+            }
+            else{
+                sumP = sumP + 0.5;
+            }
+        }
+    }
+    return oU/sumP;
+}
+/*
+W_in(v,u)
+i_U is the degree of inlinks to vertex u
+the denominator is the sum of the inlinks to each O_p
+where p is in (an element of) v which means
+from vertex p to vertex v there is a link i.e. edges[p][v] > 0
+*/
+double wIn(Graph g,int v,int u){
+    int iU = g->inDegree[u];
+    int sumP = 0;
+    for(int p = 0;p < g->nV;p++){
+        if(g->edges[p][v] > 0){
+            sumP = sumP + g->inDegree[p];
+        }
+    }
+    return iU/sumP;
+}
+//calculates the page rank for each url/vertex in the graph
+void calculatePageRank(Graph urlGraph,double dampFactor,double diffPR,int maxIterations){
+    int iteration = 0;
+    double diff = diffPR;
+    int N = urlGraph->nV;
+    double sum = 0;
+    double laggingSum;
+    
+    while(iteration < maxIterations && diff >= diffPR){
+        laggingSum = sum;
+        if(iteration == 0){
+            for(int i = 0;i < N;i++){
+                
+                urlGraph->pageRanks[i]  = 1/N;
+                
+            }
+        }
+        else{
+            sum = 0;
+            for(int i = 0;i < N;i++){
+
+                //j is an element of i as edges[i][j] > 0
+                for(int j = 0; j < N;j++){
+                    //will i>j get rid of parallel edges?
+                    if(i != j && urlGraph->edges[i][j] > 0){
+                        sum = sum + urlGraph->pageRanks[i] * wIn(urlGraph,j,i) * wOut(urlGraph,j,i);
+                    }
+                       
+                }
+                urlGraph->pageRanks[i] = (1-dampFactor)/N + dampFactor * sum;
+            }
+        }
+        diff = sum - laggingSum;
+        iteration++;
+    }
+
+
+}
+////////////////////////////////////////////////////////////////////////
+// Your task (week8 Lab)
+
 Edge ReturnEdge(Vertex v,Vertex w,double weight){
     Edge ret = {.v = v,.w = w,.weight = weight};
     return ret;

@@ -46,10 +46,11 @@ void QueueFree(Queue q) {
     while (curr != NULL) {
         Node temp = curr;
         curr = curr->next;
-        free(temp->item)
+        free(temp->item);
         free(temp);
     }
     free(q);
+
 }
 
 /**
@@ -125,7 +126,7 @@ bool QueueIsEmpty(Queue q) {
  */
 void QueueDump(Queue q, FILE *fp) {
     for (Node curr = q->head; curr != NULL; curr = curr->next) {
-        fprintf(fp, "(%d, %d) ", curr->item.row, curr->item.col);
+        fprintf(fp, "(%s) ", curr->item);
     }
     fprintf(fp, "\n");
 }

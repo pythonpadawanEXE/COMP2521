@@ -10,7 +10,7 @@
 
 
 
-typedef str *Item;
+typedef char *Item;
 
 typedef struct queue *Queue;
 

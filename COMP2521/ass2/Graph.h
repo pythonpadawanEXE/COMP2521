@@ -9,8 +9,11 @@
 
 #ifndef GRAPH_H
 #define GRAPH_H
+#define MAX_URL_LEN 100
 
 #include <stdbool.h>
+
+#include "Queue.h"
 
 typedef struct graph *Graph;
 
@@ -73,5 +76,18 @@ Graph  GraphMST(Graph g);
  * Displays information about the graph
  */
 void   GraphShow(Graph g);
+
+//ASS2 Functions
+void calculatePageRank(Graph urlGraph,double dampFactor,double diffPR,int maxIterations);
+
+void GraphPopulateEdges(Graph g);
+
+void GraphAddVertexNames(Graph g,Queue q);
+
+int GetURLNameIdx(Graph g,char * URL);
+
+void GraphAddVertexNames(Graph g,Queue q);
+
+
 
 #endif

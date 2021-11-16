@@ -11,6 +11,10 @@ typedef struct item Item;
 Item nums[10] = {{"a",32},{"b",45},{"c",17},{"d",22},{"e",94},{"f",78},{"g",64},{"h",25},{"i",55},{"j",42}};
 Item numsr[10] = {{"a",10},{"b",9},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",2},{"j",1}};
 Item numsnr[10] = {{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10}};
+
+Item numsss[10] = {{"a",10},{"b",10},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",2},{"j",1}};
+Item numsse[10] = {{"a",10},{"b",9},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",1},{"j",1}};
+Item numssm[10] = {{"a",10},{"b",9},{"c",8},{"d",7},{"e",5},{"f",5},{"g",4},{"h",3},{"i",2},{"j",1}};
  
 void printlist(Item a[],int len){
     len = len + 1;
@@ -24,7 +28,7 @@ int less(Item A,Item B){
     if(A.number < B.number){
         return 1;
     }
-    return 0;
+    return 0;          
 }
 /*
 void swap(Item A,Item B){
@@ -38,7 +42,7 @@ void selectionSort(Item a[], int lo, int hi)
 {   
     
    int i, j, min,nswaps = 0;
-   for (i = lo; i < hi-1; i++) {
+   for (i = lo; i < hi; i++) {
       min = i;
       for (j = i+1; j <= hi; j++) {
          if (less(a[j],a[min])) min = j;
@@ -111,6 +115,29 @@ void merge(Item a[], int lo, int mid, int hi)
     }
     free(tmp);
 }
+int partition(Item a[], int lo, int hi)
+{
+   Item v = a[lo];  // pivot
+   int  i = lo+1, j = hi;
+   for (;;) {
+      while (less(a[i],v) && i < j) i++;
+      while (less(v,a[j]) && j > i) j--;
+      if (i == j) break;
+      swap(a[i],a[j]);
+   }
+   j = less(a[i],v) ? i : i-1;
+   swap(a[lo],a[j]);
+   return j;
+}
+
+void quicksort(Item a[], int lo, int hi)
+{
+   int i; // index of pivot
+   if (hi <= lo) return;
+   i = partition(a, lo, hi);
+   quicksort(a, lo, i-1);
+   quicksort(a, i+1, hi);
+}
 
 void mergesort(Item a[], int lo, int hi)
 {
@@ -121,20 +148,62 @@ void mergesort(Item a[], int lo, int hi)
    merge(a, lo, mid, hi);
 }
 
+void medianOfThree(Item a[], int lo, int hi)
+{
+   int mid = (lo+hi)/2;
+   if (less(a[mid],a[lo])) swap(a[lo],a[mid]);
+   if (less(a[hi],a[mid])) swap(a[mid],a[hi]);
+   if (less(a[mid],a[lo])) swap(a[lo],a[mid]);
+   // now, we have a[lo] < a[mid] < a[hi]
+   // swap a[mid] to a[lo+1] to use as pivot
+   swap(a[mid],a[lo+1]);
+}
+void quicksort_mo3(Item a[], int lo, int hi)
+{
+   if (hi <= lo) return;
+   medianOfThree(a, lo, hi);
+   int i = partition(a, lo+1, hi-1);
+   quicksort(a, lo, i-1);
+   quicksort(a, i+1, hi);
+}
 
 
 int main(void){
+
     printlist(nums,9);
     printf("\n");
-    selectionSort(nums,0,9);
+    quicksort_mo3(nums,0,9);
     printf("\n");
+    printlist(nums,9);
+    printf("\n");
+    
     printlist(numsr,9);
     printf("\n");
-    selectionSort(numsr,0,9);
+    quicksort_mo3(numsr,0,9);
     printf("\n");
     printlist(numsnr,9);
     printf("\n");
-    selectionSort(numsnr,0,9);
+    
+
+    printlist(numsss,9);
+    printf("\n");
+    quicksort_mo3(numsss,0,9);
+    printf("\n");
+    printlist(numsss,9);
+    printf("\n");
+    
+    printlist(numsse,9);
+    printf("\n");
+    quicksort_mo3(numsse,0,9);
+    printf("\n");
+    printlist(numsse,9);
+    printf("\n");
+    
+    printlist(numssm,9);
+    printf("\n");
+    quicksort_mo3(numssm,0,9);
+    printf("\n");
+    printlist(numssm,9);
     printf("\n");
     
     
