@@ -5,8 +5,9 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "Queue.h"
+
 
 typedef struct node *Node;
 struct node {
@@ -58,6 +59,9 @@ void QueueFree(Queue q) {
  */
 void QueueEnqueue(Queue q, Item it) {
     Node n = newNode(it);
+    n->item = malloc(sizeof(char)*MAX_URL_LENGTH);
+    assert(n->item != NULL);
+    strcpy(n->item,it);
     if (q->size == 0) {
         q->head = n;
     } else {
@@ -68,13 +72,12 @@ void QueueEnqueue(Queue q, Item it) {
 }
 
 static Node newNode(Item it) {
-    Node n = malloc(sizeof(*n));
+    Node n = malloc(sizeof(struct node));
+    
     if (n == NULL) {
         fprintf(stderr, "couldn't allocate Node\n");
         exit(EXIT_FAILURE);
     }
-
-    n->item = it;
     n->next = NULL;
     return n;
 }

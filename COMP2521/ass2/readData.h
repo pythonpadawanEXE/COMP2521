@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "Queue.h"
-#define BUFF_SIZE 256
+
 
 //return a concatenated string
 char *return_strcat(char *line,const char* append_txt);

@@ -12,13 +12,14 @@
 #include "PQ.h"
 #include "Queue.h"
 #include "readData.h"
+#include "IntList.h"
 
 
 struct graph {
     int nV;         // #vertices
     int nE;         // #edges
     double **edges; // adjacency matrix storing positive weights
-    char **vertice_names;
+    char **verticeNames;
     double *pageRanks;
     int *outDegree; //for each URL how many links that URL has where the index of numLinks and vertice_names match
     int *inDegree; //for each URL how many links are pointing to it i.e. incoming link counter
@@ -42,8 +43,8 @@ Graph GraphNew(int nV) {
     g->nV = nV;
     g->nE = 0;
     //ADD vertice names
-    g->vertice_names = malloc(nV * sizeof(char *));
-    assert(g->vertice_names != NULL);
+    g->verticeNames = malloc(nV * sizeof(char *));
+    assert(g->verticeNames != NULL);
 
     //add number outgoing links for each vertex
     g->outDegree = calloc(nV,sizeof(int));
@@ -64,7 +65,7 @@ Graph GraphNew(int nV) {
     }
     for (int i = 0; i < nV; i++) {
         //initalise to NULL to help find segfaults
-        g->vertice_names[i] = NULL;
+        g->verticeNames[i] = NULL;
         g->edges[i] = calloc(nV, sizeof(double));
         if (g->edges[i] == NULL) {
             fprintf(stderr, "error: out of memory\n");
@@ -79,13 +80,13 @@ void GraphFree(Graph g) {
     for (int i = 0; i < g->nV; i++) {
         free(g->edges[i]);
         //free vertice names
-        free(g->vertice_names[i]);
+        free(g->verticeNames[i]);
     }
     free(g->inDegree);
     free(g->pageRanks);
     free(g->outDegree);
     free(g->edges);
-    free(g->vertice_names);
+    free(g->verticeNames);
     free(g);
 }
 
@@ -178,8 +179,8 @@ static bool doHasCycle(Graph g, Vertex v, Vertex prev, bool *visited) {
 // Ass 2 new functions
 //find the index in the graph rep for the given URL string
 int GetURLNameIdx(Graph g,char * URL){
-    for(int i;i < g->nV;i++){
-        if(strcmp(g->vertice_names[i],URL) == 0){
+    for(int i = 0;i < g->nV;i++){
+        if(strcmp(g->verticeNames[i],URL) == 0){
             return i;
         }
     }
@@ -187,13 +188,13 @@ int GetURLNameIdx(Graph g,char * URL){
 }
 //adds vertex names to vertice_names which can be used to craw url.txt files later
 void GraphAddVertexNames(Graph g,Queue q){
-
+    char *q_head_str = NULL;
     //goes through queue and copy queue items to graph vertice names
     for(int i = 0;i<g->nV;i++){
-        g->vertice_names[i] = malloc(MAX_URL_LEN * sizeof(char));
-        char *q_head_str = QueueDequeue(q);
+        g->verticeNames[i] = malloc(MAX_URL_LEN * sizeof(char));
+        q_head_str = QueueDequeue(q);
 
-        strcpy(g->vertice_names[i],q_head_str);
+        strcpy(g->verticeNames[i],q_head_str);
         
         free(q_head_str);
 
@@ -215,11 +216,11 @@ void GraphPopulateEdges(Graph g){
     e.weight = 1;
     for(int i = 0;i < g->nV;i++){
         //copyfile contents to filename
-        strcpy(filename,g->vertice_names[i]);
+        strcpy(filename,g->verticeNames[i]);
         //append .txt to filename
         strcat(filename,suffix);
         //get list of out going links from filename
-        outgoing_links = get_urls(filename,"#start Section-1","#end Section-1");
+        outgoing_links = get_urls(filename,"#start Section-1\n","#end Section-1\n");
         
         num_links= QueueSize(outgoing_links);
         //O_u is num_links for each URL
@@ -231,10 +232,17 @@ void GraphPopulateEdges(Graph g){
             q_head_str = QueueDequeue(outgoing_links);
             //find index of link name (separate function)
             idx = GetURLNameIdx(g,q_head_str);
+            //URL name not found .. what do? continue? exit? should this never happen?
+            if(idx == -1){
+               fprintf(stderr, "URL doesn't seem to have been found\n");
+                exit(EXIT_FAILURE);
+            }
             //e.w is the to position or the incoming
             e.w = idx;
             g->inDegree[idx]++;
-            GraphInsertEdge(g,e);
+            if(e.w != e.v){
+                GraphInsertEdge(g,e);
+            }
             free(q_head_str);
         }
         QueueFree(outgoing_links);
@@ -319,6 +327,48 @@ void calculatePageRank(Graph urlGraph,double dampFactor,double diffPR,int maxIte
 
 
 }
+//make ordered list of pageRanks
+IntList orderListURLS(Graph g){
+    IntList l = IntListNew();
+    for(int i = 0;i < g->nV;i++){
+        IntListInsertInOrder(l,g->pageRanks[i]);
+    }
+    return l;
+}
+int findIndexFromPageRank(Graph g,double PageRank){
+    for(int i = 0;i < g->nV ; i++){
+        if(PageRank == g->pageRanks[i]){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int ReturnOutDegree(Graph g,int idx){
+    return g->outDegree[idx];
+}
+
+char * ReturnURL(Graph g,int idx){
+    return g->verticeNames[idx];
+}
+void outputRankedURLS(Graph g,IntList l){
+	int idx;
+	char *URL;
+	int outDegree;
+	//make file to write to
+	FILE *fptr;
+	fptr = fopen("pagerankList.txt","w");
+	for (struct IntListNode *curr = l->first;
+	curr != NULL; curr = curr->next) {
+		idx = findIndexFromPageRank(g,curr->data);
+		outDegree = ReturnOutDegree(g,idx);
+		URL = ReturnURL(g,idx);
+		fprintf(fptr,"%s, %d, %lf\n",URL,outDegree,curr->data);
+
+	}
+	fclose(fptr);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Your task (week8 Lab)
 

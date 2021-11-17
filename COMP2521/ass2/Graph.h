@@ -14,6 +14,7 @@
 #include <stdbool.h>
 
 #include "Queue.h"
+#include "IntList.h"
 
 typedef struct graph *Graph;
 
@@ -88,6 +89,17 @@ int GetURLNameIdx(Graph g,char * URL);
 
 void GraphAddVertexNames(Graph g,Queue q);
 
+IntList orderListURLS(Graph g);
+
+void outputRankedURLS(Graph g,IntList l);
+
+int findIndexFromPageRank(Graph g,double PageRank);
+
+int ReturnOutDegree(Graph g,int idx);
+
+char * ReturnURL(Graph g,int idx);
+
+void outputRankedURLS(Graph g,IntList l);
 
 
 #endif

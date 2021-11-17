@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define BUFF_SIZE 1024
+#define MAX_URL_LENGTH 100
 
 
 typedef char *Item;
