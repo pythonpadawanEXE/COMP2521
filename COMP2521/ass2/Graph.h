@@ -101,5 +101,10 @@ char * ReturnURL(Graph g,int idx);
 
 void outputRankedURLS(Graph g,IntList l);
 
+void GraphGridShow(Graph g);
+
+void GraphWeights(Graph g);
+
+
 
 #endif

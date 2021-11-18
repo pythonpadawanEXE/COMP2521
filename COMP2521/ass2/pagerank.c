@@ -29,8 +29,11 @@ int main(int argc, char *argv[]) {
     }
 
     dampFactor = strtod(argv[1],&endPtr);
+    printf("dampFactor %lf\n",dampFactor);
     diffPR = strtod(argv[2],&endPtr);
+    printf("diffPR %lf\n",diffPR);
     maxIterations = strtod(argv[3],&endPtr);
+    printf("max Iterations %lf\n",maxIterations);
 
     //skip line and EOF are dummy strings
     Queue collection_q = get_urls("collection.txt","skip line","EOF");
@@ -45,6 +48,9 @@ int main(int argc, char *argv[]) {
     //outgoing	links	
     GraphPopulateEdges(urlGraph);
 
+    GraphShow(urlGraph);
+    GraphGridShow(urlGraph);
+    GraphWeights(urlGraph);
     //calculate PageRank for each url
     calculatePageRank(urlGraph,dampFactor,diffPR,maxIterations);
 
@@ -53,7 +59,7 @@ int main(int argc, char *argv[]) {
 
     //need to make a function that outputs this list to a pagerankList.txt file
     outputRankedURLS(urlGraph,pageRankList);
-    printf("wtf\n");
+    
     IntListShow(pageRankList);
     //navigate through queue in a while loop until reach end of collection queue
     IntListFree(pageRankList);

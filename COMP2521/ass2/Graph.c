@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "Graph.h"
 #include "PQ.h"
@@ -20,9 +21,10 @@ struct graph {
     int nE;         // #edges
     double **edges; // adjacency matrix storing positive weights
     char **verticeNames;
+    double *oldpageRanks;
     double *pageRanks;
-    int *outDegree; //for each URL how many links that URL has where the index of numLinks and vertice_names match
-    int *inDegree; //for each URL how many links are pointing to it i.e. incoming link counter
+    double *outDegree; //for each URL how many links that URL has where the index of numLinks and vertice_names match
+    double *inDegree; //for each URL how many links are pointing to it i.e. incoming link counter
                     // 0 if nodes not adjacent
 };
 
@@ -47,16 +49,19 @@ Graph GraphNew(int nV) {
     assert(g->verticeNames != NULL);
 
     //add number outgoing links for each vertex
-    g->outDegree = calloc(nV,sizeof(int));
+    g->outDegree = calloc(nV,sizeof(double));
     assert(g->outDegree != NULL);
 
     //add number incoming links for each vertex
-    g->inDegree = calloc(nV,sizeof(int));
+    g->inDegree = calloc(nV,sizeof(double));
     assert(g->inDegree != NULL);
 
     //add page Ranks
     g->pageRanks = calloc(nV,sizeof(double));
     assert(g->pageRanks != NULL);
+
+    g->oldpageRanks = calloc(nV,sizeof(double));
+    assert(g->oldpageRanks != NULL);
 
     g->edges = malloc(nV * sizeof(double *));
     if (g->edges == NULL) {
@@ -84,6 +89,7 @@ void GraphFree(Graph g) {
     }
     free(g->inDegree);
     free(g->pageRanks);
+    free(g->oldpageRanks);
     free(g->outDegree);
     free(g->edges);
     free(g->verticeNames);
@@ -104,7 +110,7 @@ bool GraphInsertEdge(Graph g, Edge e) {
 
     if (g->edges[e.v][e.w] == 0.0) {
         g->edges[e.v][e.w] = e.weight;
-        g->edges[e.w][e.v] = e.weight;
+        //g->edges[e.w][e.v] = e.weight;
         g->nE++;
         return true;
     } else {
@@ -142,6 +148,20 @@ void GraphShow(Graph g) {
                 printf("Edge %d - %d: %lf\n", v, w, g->edges[v][w]);
             }
         }
+    }
+}
+
+void GraphGridShow(Graph g){
+    for (int v = 0; v < g->nV; v++) {
+        for (int w = 0; w < g->nV; w++) {
+            printf("%lf ",g->edges[v][w]);
+        }
+        printf("\n");
+    }
+}
+void GraphWeights(Graph g){
+    for (int v = 0; v < g->nV; v++) {
+        printf("InDegree: %lf, OutDegree %lf, Name %s\n",g->inDegree[v],g->outDegree[v],g->verticeNames[v]);
     }
 }
 
@@ -208,7 +228,7 @@ void GraphPopulateEdges(Graph g){
     char *filename = malloc(sizeof(char )* (MAX_URL_LEN + strlen(".txt")));
     char suffix[] = ".txt";
     char *q_head_str = NULL;
-    int num_links = -1;
+    // int num_links = -1;
     int idx;
     Edge e;
     e.v = -1;
@@ -222,26 +242,31 @@ void GraphPopulateEdges(Graph g){
         //get list of out going links from filename
         outgoing_links = get_urls(filename,"#start Section-1\n","#end Section-1\n");
         
-        num_links= QueueSize(outgoing_links);
+        // num_links= QueueSize(outgoing_links);
+
         //O_u is num_links for each URL
-        g->outDegree[i] = num_links;
+        
         //v is the from position i.e. outgoing
         e.v = i;
         while(!QueueIsEmpty(outgoing_links)){
             //dequeue to get string
             q_head_str = QueueDequeue(outgoing_links);
-            //find index of link name (separate function)
-            idx = GetURLNameIdx(g,q_head_str);
-            //URL name not found .. what do? continue? exit? should this never happen?
-            if(idx == -1){
-               fprintf(stderr, "URL doesn't seem to have been found\n");
-                exit(EXIT_FAILURE);
-            }
-            //e.w is the to position or the incoming
-            e.w = idx;
-            g->inDegree[idx]++;
-            if(e.w != e.v){
+            if( strcmp(q_head_str,g->verticeNames[i]) != 0 ){
+                g->outDegree[i]++;
+                //find index of link name (separate function)
+                idx = GetURLNameIdx(g,q_head_str);
+                //URL name not found .. what do? continue? exit? should this never happen?
+                if(idx == -1){
+                fprintf(stderr, "URL doesn't seem to have been found\n");
+                    exit(EXIT_FAILURE);
+                }
+                //e.w is the to position or the incoming
+                e.w = idx;
+                g->inDegree[idx]++;
                 GraphInsertEdge(g,e);
+                // if(e.w != e.v){
+                //     GraphInsertEdge(g,e);
+                // }
             }
             free(q_head_str);
         }
@@ -258,19 +283,24 @@ where p is in (an element of) v which means
 from vertex v to vertex p there is a link i.e. edges[v][p] > 0
 */
 double wOut(Graph g,int v,int u){
-    int oU= g->outDegree[u];
-    int sumP = 0;
+    double oU= g->outDegree[u];
+    double sumP = 0;
+    double half = 0.5;
     for(int p = 0;p < g->nV;p++){
         if(g->edges[v][p] > 0){
             if(g->outDegree[p] > 0){
                 sumP = sumP + g->outDegree[p];
             }
             else{
-                sumP = sumP + 0.5;
+                sumP = sumP + half;
             }
         }
     }
-    return oU/sumP;
+    if (sumP == 0){
+        printf("?\n");
+    }
+    double ret = oU/sumP;
+    return ret;
 }
 /*
 W_in(v,u)
@@ -280,48 +310,78 @@ where p is in (an element of) v which means
 from vertex p to vertex v there is a link i.e. edges[p][v] > 0
 */
 double wIn(Graph g,int v,int u){
-    int iU = g->inDegree[u];
-    int sumP = 0;
+    double iU = g->inDegree[u];
+    double sumP = 0;
     for(int p = 0;p < g->nV;p++){
-        if(g->edges[p][v] > 0){
+        if(g->edges[v][p] > 0){
             sumP = sumP + g->inDegree[p];
         }
     }
-    return iU/sumP;
+    if (sumP == 0){
+        printf("?\n");
+    }
+    double ret = iU/sumP;
+    return ret;
+}
+
+static double getDiff(Graph g){
+    double diff = 0;
+    for(int i =0;i < g->nV;i++){
+        diff = diff + fabs(g->pageRanks[i] - g->oldpageRanks[i]);
+    }
+    return diff;
 }
 //calculates the page rank for each url/vertex in the graph
 void calculatePageRank(Graph urlGraph,double dampFactor,double diffPR,int maxIterations){
     int iteration = 0;
     double diff = diffPR;
-    int N = urlGraph->nV;
+    double N = urlGraph->nV;
+    double half = 0.5;
     double sum = 0;
-    double laggingSum;
+    //fix outdegree
+    for(int i = 0;i< N;i++){
+        if(urlGraph->outDegree[i]==0){
+            urlGraph->outDegree[i] = half;
+        }
+    }
     
     while(iteration < maxIterations && diff >= diffPR){
-        laggingSum = sum;
+        
         if(iteration == 0){
             for(int i = 0;i < N;i++){
-                
+                urlGraph->oldpageRanks[i] = 0;
                 urlGraph->pageRanks[i]  = 1/N;
                 
             }
         }
         else{
-            sum = 0;
+            
             for(int i = 0;i < N;i++){
-
+                sum = 0;
+                
                 //j is an element of i as edges[i][j] > 0
                 for(int j = 0; j < N;j++){
                     //will i>j get rid of parallel edges?
-                    if(i != j && urlGraph->edges[i][j] > 0){
+                    if(urlGraph->edges[j][i] > 0){
+                        printf("iteration:%d i:%d j:%d sum %lf rank %lf wIN %lf wOut %lf\n",iteration,i,j,sum,urlGraph->pageRanks[i],wIn(urlGraph,j,i),wOut(urlGraph,j,i));
                         sum = sum + urlGraph->pageRanks[i] * wIn(urlGraph,j,i) * wOut(urlGraph,j,i);
+                        
+                        
                     }
                        
                 }
+                urlGraph->oldpageRanks[i] = urlGraph->pageRanks[i];
                 urlGraph->pageRanks[i] = (1-dampFactor)/N + dampFactor * sum;
             }
         }
-        diff = sum - laggingSum;
+        // for(int i = 0; i < N;i++){
+        //     printf("%lf\n",urlGraph->pageRanks[i]);
+        //     if(urlGraph->pageRanks[i] > 1){
+
+        //     }
+        // }
+        
+        diff = getDiff(urlGraph);
         iteration++;
     }
 
@@ -363,7 +423,7 @@ void outputRankedURLS(Graph g,IntList l){
 		idx = findIndexFromPageRank(g,curr->data);
 		outDegree = ReturnOutDegree(g,idx);
 		URL = ReturnURL(g,idx);
-		fprintf(fptr,"%s, %d, %lf\n",URL,outDegree,curr->data);
+		fprintf(fptr,"%s, %d, %.7lf\n",URL,outDegree,curr->data);
 
 	}
 	fclose(fptr);

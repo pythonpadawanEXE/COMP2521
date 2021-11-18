@@ -10,7 +10,12 @@ typedef struct item Item;
 
 Item nums[10] = {{"a",32},{"b",45},{"c",17},{"d",22},{"e",94},{"f",78},{"g",64},{"h",25},{"i",55},{"j",42}};
 Item numsr[10] = {{"a",10},{"b",9},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",2},{"j",1}};
-Item numsnr[10] = {{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10}};
+
+Item numsnr[] = {{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10},{"k",11}};
+Item numsnrr[] = {{"k",11},{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10}};
+
+Item numsnr1[] = {{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10},{"k",11}};
+Item numsnrr1[] = {{"k",11},{"a",1},{"b",2},{"c",3},{"d",4},{"e",5},{"f",6},{"g",7},{"h",8},{"i",9},{"j",10}};
 
 Item numsss[10] = {{"a",10},{"b",10},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",2},{"j",1}};
 Item numsse[10] = {{"a",10},{"b",9},{"c",8},{"d",7},{"e",6},{"f",5},{"g",4},{"h",3},{"i",1},{"j",1}};
@@ -56,10 +61,11 @@ void selectionSort(Item a[], int lo, int hi)
 
 void bubbleSort(Item a[], int lo, int hi)
 {
-   int i, j, nswaps = 0;
+   int i, j, nswaps = 0, ncomps = 0;
    for (i = lo; i < hi; i++) {
       nswaps = 0;
       for (j = hi; j > i; j--) {
+         ncomps++;
          if (less(a[j], a[j-1])) {
             swap(a[j], a[j-1]);
             nswaps++;
@@ -67,7 +73,7 @@ void bubbleSort(Item a[], int lo, int hi)
       }
       if (nswaps == 0) break;
    }
-   printf("swaps: %d\n",nswaps);
+   printf("swaps: %d comps %d\n",nswaps,ncomps);
    printlist(a,hi);
 }
 
@@ -169,42 +175,53 @@ void quicksort_mo3(Item a[], int lo, int hi)
 
 
 int main(void){
+   printlist(numsnr,10);
+   printf("\n");
+   printlist(numsnrr,10);
+   printf("\n");
 
-    printlist(nums,9);
-    printf("\n");
-    quicksort_mo3(nums,0,9);
-    printf("\n");
-    printlist(nums,9);
-    printf("\n");
+   printf("Insertion Sort\n");
+
+   insertionSort(numsnr,0,10);
+   printf("\n");
+   insertionSort(numsnrr,0,10);
+   printf("\n");
+
+   printf("Bubble Sort\n");
+   
+   bubbleSort(numsnr1,0,10);
+   printf("\n");
+   bubbleSort(numsnrr1,0,10);
+   printf("\n");
     
-    printlist(numsr,9);
-    printf("\n");
-    quicksort_mo3(numsr,0,9);
-    printf("\n");
-    printlist(numsnr,9);
-    printf("\n");
+   //  printlist(numsr,9);
+   //  printf("\n");
+   //  quicksort_mo3(numsr,0,9);
+   //  printf("\n");
+   //  printlist(numsnr,9);
+   //  printf("\n");
     
 
-    printlist(numsss,9);
-    printf("\n");
-    quicksort_mo3(numsss,0,9);
-    printf("\n");
-    printlist(numsss,9);
-    printf("\n");
+   //  printlist(numsss,9);
+   //  printf("\n");
+   //  quicksort_mo3(numsss,0,9);
+   //  printf("\n");
+   //  printlist(numsss,9);
+   //  printf("\n");
     
-    printlist(numsse,9);
-    printf("\n");
-    quicksort_mo3(numsse,0,9);
-    printf("\n");
-    printlist(numsse,9);
-    printf("\n");
+   //  printlist(numsse,9);
+   //  printf("\n");
+   //  quicksort_mo3(numsse,0,9);
+   //  printf("\n");
+   //  printlist(numsse,9);
+   //  printf("\n");
     
-    printlist(numssm,9);
-    printf("\n");
-    quicksort_mo3(numssm,0,9);
-    printf("\n");
-    printlist(numssm,9);
-    printf("\n");
+   //  printlist(numssm,9);
+   //  printf("\n");
+   //  quicksort_mo3(numssm,0,9);
+   //  printf("\n");
+   //  printlist(numssm,9);
+   //  printf("\n");
     
     
     
