@@ -39,6 +39,7 @@ void ListFree(List l) {
 	while (curr != NULL) {
 		struct ListNode *temp = curr;
 		curr = curr->next;
+		free(temp->str);
 		free(temp);
 	}
 	free(l);

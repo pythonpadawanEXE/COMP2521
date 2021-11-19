@@ -21,7 +21,13 @@ int main(int argc, char *argv[]) {
         assert(queryWords[0] != NULL);
         strcpy(queryWords[i-1],argv[i]);
     }
-    // List matchedUrlList = findMatchedUrls("invertedIndex.txt",queryWords);
-
+    SearchItem* matchedUrlList = findMatchedUrls("invertedIndex.txt",queryWords);
+    ArrayListShow(matchedUrlList);
+    //List matchedUrlswithPR = findPageRank("pagerankList.txt",matchedUrlList);
+    for(int i = 0;queryWords[i] != NULL;i++){
+        free(queryWords[i]);
+    }
+    free(queryWords);
+    ArrayFree(matchedUrlList);
 }
 

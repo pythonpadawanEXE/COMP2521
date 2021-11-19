@@ -8,6 +8,12 @@
 #include "List.h"
 #include "Queue.h"
 
+typedef struct searchItem{
+    char *URL;
+    double pageRank;
+    int numMatches;
+}SearchItem;
+
 
 //return a concatenated string
 char *returnStrcat(char *line,const char* appendTxt);
@@ -20,4 +26,6 @@ Queue qUrls(char *line,Queue q);
 */
 Queue getUrls(const char * filename,const char* start, const char* end);
 
-List findMatchedUrls(const char* filename,char ** queryWords);
+SearchItem* findMatchedUrls(const char* filename,char ** queryWords);
+void ArrayListShow(struct searchItem* UrlList);
+void ArrayFree(SearchItem * List);
