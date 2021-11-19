@@ -153,24 +153,45 @@ void ListInsertRevInOrder(List l, double v,char *str) {
 		ListAppend(l, v,str);
 	}
 	//prepend
-	else if (v >= l->first->data){
+	else if (v > l->first->data  ){
 		ListPrepend(l, v,str);
+
 		
 	}
 	//if integer inserted at end i.e. append
-	else if (v <= l->last->data) {
+	else if (v < l->last->data) {
 		ListAppend(l, v,str);
 	}
 	//integer inserted in middle of list
 	else {
 		struct ListNode *n = newListNode(v,str);
 		struct ListNode *curr = l->first;
+		struct ListNode *prev = curr;
 		while( curr->next != NULL){
-			if(v >= curr->next->data && v <= curr->data){
+			if(v > curr->next->data && v < curr->data){
 				n->next = curr->next;
 				curr->next = n;
 				break;
 			}
+			//sort alphabetically A-Z if same value
+			else if( v == curr->next->data){
+				if(strcmp(str,curr->next->str) > 0){
+					n->next = curr->next;
+					curr->next = n;
+					break;
+				}
+				//note strcmp cant be zero as urls cant be the same
+				else{
+					if(curr == l->first){
+						l->first = n;
+					} 
+					n->next = curr;
+					prev->next = n;
+					break;
+
+				}
+			}
+			prev = curr;
 			curr = curr->next;
 		}
 
