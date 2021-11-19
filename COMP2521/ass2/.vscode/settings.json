@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdbool.h": "c",
-        "graph.h": "c"
+        "graph.h": "c",
+        "sysexits.h": "c"
     }
 }

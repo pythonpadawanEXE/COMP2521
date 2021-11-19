@@ -36,7 +36,7 @@ CFLAGS = -Wall -Werror -g
 # Your scaledFootrule.c should have the main() function for Part 3
 # List all your C files that DON'T contain a main() function here
 # For example: SUPPORTING_FILES = hello.c world.c
-SUPPORTING_FILES = Queue.c Queue.h readData.c readData.h IntList.c IntList.h Graph.c Graph.h PQ.c PQ.h 
+SUPPORTING_FILES = Queue.c Queue.h readData.c readData.h List.c List.h Graph.c Graph.h PQ.c PQ.h 
 
 .PHONY: all
 all: pagerank searchPagerank scaledFootrule

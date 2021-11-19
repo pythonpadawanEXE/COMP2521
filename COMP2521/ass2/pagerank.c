@@ -14,12 +14,10 @@
 #include "Graph.h"
 #include "Queue.h"
 #include "readData.h"
-#include "IntList.h"
+#include "List.h"
 
 int main(int argc, char *argv[]) {
-    for(int i =0; i <= argc ;i++){
-        printf("%d : %s\n",i,argv[i]);
-    }
+
     char *endPtr = NULL;
     double dampFactor, diffPR, maxIterations;
     //note last argument is always null
@@ -29,40 +27,37 @@ int main(int argc, char *argv[]) {
     }
 
     dampFactor = strtod(argv[1],&endPtr);
-    printf("dampFactor %lf\n",dampFactor);
+
     diffPR = strtod(argv[2],&endPtr);
-    printf("diffPR %lf\n",diffPR);
+
     maxIterations = strtod(argv[3],&endPtr);
-    printf("max Iterations %lf\n",maxIterations);
+
 
     //skip line and EOF are dummy strings
-    Queue collection_q = get_urls("collection.txt","skip line","EOF");
+    Queue collectionQ = getUrls("collection.txt","skip line","EOF");
 
     //make graph size of collection q the queue index is the vertex number
-    Graph urlGraph = GraphNew(QueueSize(collection_q));
+    Graph urlGraph = GraphNew(QueueSize(collectionQ));
 
     //populate vertex names
-    GraphAddVertexNames(urlGraph,collection_q);
+    GraphAddVertexNames(urlGraph,collectionQ);
 
     //Add all Edges i.e. read	<url>.txt	file,	and	update	graph	by	adding	a	node	and	
     //outgoing	links	
     GraphPopulateEdges(urlGraph);
 
-    GraphShow(urlGraph);
-    GraphGridShow(urlGraph);
-    GraphWeights(urlGraph);
+
     //calculate PageRank for each url
     calculatePageRank(urlGraph,dampFactor,diffPR,maxIterations);
 
     //need to create a function which adds structs to a list in order of page rank
-    IntList pageRankList = orderListURLS(urlGraph);
+    List pageRankList = orderListURLS(urlGraph);
 
     //need to make a function that outputs this list to a pagerankList.txt file
     outputRankedURLS(urlGraph,pageRankList);
     
-    IntListShow(pageRankList);
     //navigate through queue in a while loop until reach end of collection queue
-    IntListFree(pageRankList);
+    ListFree(pageRankList);
     GraphFree(urlGraph);
 }
 

@@ -9,12 +9,12 @@
 
 #ifndef GRAPH_H
 #define GRAPH_H
-#define MAX_URL_LEN 100
+#define MaxUrlLen 100
 
 #include <stdbool.h>
 
 #include "Queue.h"
-#include "IntList.h"
+#include "List.h"
 
 typedef struct graph *Graph;
 
@@ -89,9 +89,9 @@ int GetURLNameIdx(Graph g,char * URL);
 
 void GraphAddVertexNames(Graph g,Queue q);
 
-IntList orderListURLS(Graph g);
+List orderListURLS(Graph g);
 
-void outputRankedURLS(Graph g,IntList l);
+void outputRankedURLS(Graph g,List l);
 
 int findIndexFromPageRank(Graph g,double PageRank);
 
@@ -99,7 +99,7 @@ int ReturnOutDegree(Graph g,int idx);
 
 char * ReturnURL(Graph g,int idx);
 
-void outputRankedURLS(Graph g,IntList l);
+void outputRankedURLS(Graph g,List l);
 
 void GraphGridShow(Graph g);
 
